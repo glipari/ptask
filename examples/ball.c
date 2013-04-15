@@ -63,7 +63,7 @@ void draw_ball(int x, int y, int c)
 /*	Periodic task for ball simulation			*/
 /*--------------------------------------------------------------*/
 
-void*	palla(void* arg)
+void	palla()
 {
 int	i, col, dcol=0;	/* indice del task  */
 int	x, y;		/* coordinate grafiche pallina  */
@@ -76,8 +76,7 @@ float	dt;		/* incremento temporale     */
 double	a;		/* variabile di appoggio    */
 long	j, k;
 
-	i = task_argument(arg);
-
+        i = get_taskindex();
 	col = 2 + i%14;
 	y = oy = (TOP-L);
 	x = ox = x0 = XMIN;
@@ -89,7 +88,7 @@ long	j, k;
 	t = vy / G;
 	dt = task_period(i) / 100.;
 
-	wait_for_activation(i);
+	wait_for_activation();
 
 	while (1) {
         	x = x0 + vx * tx;
@@ -131,7 +130,8 @@ long	j, k;
 			rectfill(screen, 400, 50, 450, 70, dcol);
 			pthread_mutex_unlock(&mxa);
 		}
-		wait_for_period(i);
+		printf("Ready to wait for period\n");
+		wait_for_period();
 	}
 }
 

@@ -2,27 +2,23 @@
 /*		PTASK LIBRARY - HEADER FILE			*/
 /*--------------------------------------------------------------*/
 
+#ifndef __PTASK_H__
+#define __PTASK_H__
+
 #include <pthread.h>
 #include <semaphore.h>
-#include <time.h>
+#include <ptime.h>
 
 /*--------------------------------------------------------------*/
 
 #define	MAX_TASKS	50
 #define	MAX_GROUPS	10
 
-/* time units for get_systime */
-#define	SEC	1
-#define	MILLI	2
-#define	MICRO	3
-#define	NANO	4
-
 /* activation flag for task_create */
 #define	NOACT		0
 #define	ACT		1
 
 /*--------------------------------------------------------------*/
-
 struct task_par {
     int  arg;			/* task argument		*/
     long wcet;			/* task WCET in microseconds	*/
@@ -32,22 +28,22 @@ struct task_par {
     int  dmiss;			/* number of deadline miss	*/
     struct timespec at;		/* next activation time		*/
     struct timespec dl;		/* current absolute deadline	*/
+    void (*body)(void);         /* the actual body of the task  */
+    int free;                   /* >=0 if this descr is avail.  */
+    int act_flag;               /* flag for postponed activ.    */
 };
 
-/*--------------------------------------------------------------*/
-/*			TASK FUNCTIONS				*/
-/*--------------------------------------------------------------*/
+void	ptask_init(int policy); /** Initializes the library      */
 
-long	get_systime(int unit);
-void	time_copy(struct timespec *td, struct timespec ts);
-void	time_add_ms(struct timespec *t, unsigned int ms);
-int	time_cmp(struct timespec t1, struct timespec t2);
+/*---------------------------------------------------------------*/
+/*			TASK FUNCTIONS                           */
+/*---------------------------------------------------------------*/
+void	wait_for_activation();  /** waits for an exp. activation */
+void	wait_for_period();      /** waits for next periodic act. */
+void    set_activation(const tspec_t *off); /** sets the act. time */
+int     get_taskindex();        /** returns the thread own index */
+int	task_argument(void* arg); /* TO BE REMOVED */
 
-void	ptask_init(int policy);
-void	wait_for_activation(int i);
-void	wait_for_period(int i);
-
-int	task_argument(void* arg);
 long	task_wcet(int i);
 int	task_period(int i);
 int	task_deadline(int i);
@@ -60,8 +56,11 @@ void	task_setperiod(int i, int per);
 void	task_setdeadline(int i, int dline);
 int	deadline_miss(int i);
 
-int	task_create(int i, void *(*task)(void *), int period, int drel, int prio, int aflag);
+int	task_create(int i, void (*task)(void), 
+		    int period, int drel, int prio, int aflag);
 void	task_activate(int i);
+
+#endif
 
 /*--------------------------------------------------------------*/
 

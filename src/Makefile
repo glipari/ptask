@@ -1,13 +1,11 @@
 CC = gcc
 LD = gcc
-CFLAGS = -Wall
-SRCS = ptask.c
+CFLAGS = -Wall -I.
+SRCS = ptask.c pbarrier.c ptime.c
 OBJS = ${SRCS:.c=.o}
 DOBJ = ${SRCS:.c=.do}
 STATIC_LIB = libptask.a
 SHARED_LIB = libptask.so.1
-
-
 
 $(STATIC_LIB) : $(OBJS)
 	$(AR) rcs libptask.a $(OBJS)
@@ -15,6 +13,11 @@ $(STATIC_LIB) : $(OBJS)
 $(SHARED_LIB) : $(DOBJ) 
 	$(CC) -shared -Wl,-soname,libptask.so.1 \
 	      -o libptask.so.1.0.1 $(DOBJ)
+
+-include Makefile.deps
+
+depend:
+	$(CC) $(CFLAGS) -MM *.[ch] > Makefile.deps
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -28,5 +31,9 @@ clean:
 	rm -f $(OBJS)
 	rm -f $(DOBJ)
 
-cleanall: clean
-	rm -f $(STATIC_LIB) $(SHARED_LIB).0.1
+cleanedit: 
+	rm -f *~
+
+cleanall: clean cleanedit
+	rm -f $(STATIC_LIB) '$(SHARED_LIB).0.1'
+

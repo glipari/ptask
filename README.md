@@ -3,13 +3,12 @@ ptask
 
 Periodic Real-Time Task interface to pthreads
 
-Version 0.1 
+Version 0.1, April 2013
 
 Authors 
 -------
-
-Giorgio Buttazzo (g.buttazzo@sssup.it)
-Giuseppe Lipari (g.lipari@sssup.it)
+- Giorgio Buttazzo (g.buttazzo@sssup.it)
+- Giuseppe Lipari  (g.lipari@sssup.it)
 
 License: GPL 3.0
 
