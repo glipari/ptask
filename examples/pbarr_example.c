@@ -61,8 +61,7 @@ int main()
 	offset[i] = tspec_from(i, SEC);
 
     for (i=0; i<NTASKS; i++) {
-	ret = task_create(i, 
-			  task_body, 
+	ret = task_create(task_body, 
 			  (i+1)*1000, 
 			  (i+1)*1000, 
 			  NTASKS + 1 - i, 

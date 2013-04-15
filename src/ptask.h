@@ -56,7 +56,7 @@ void	task_setperiod(int i, int per);
 void	task_setdeadline(int i, int dline);
 int	deadline_miss(int i);
 
-int	task_create(int i, void (*task)(void), 
+int	task_create(void (*task)(void), 
 		    int period, int drel, int prio, int aflag);
 void	task_activate(int i);
 

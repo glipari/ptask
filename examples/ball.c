@@ -130,7 +130,6 @@ long	j, k;
 			rectfill(screen, 400, 50, 450, 70, dcol);
 			pthread_mutex_unlock(&mxa);
 		}
-		printf("Ready to wait for period\n");
 		wait_for_period();
 	}
 }
@@ -146,6 +145,7 @@ int	i, j, k;		/* number of tasks created	*/
 double  a;			/* temporary variable       */
 int	h;			/* temporary variable       */
 char	s[20];
+int     ntasks = 0;             /* total number of created tasks*/
 
 	init();
 
@@ -160,15 +160,20 @@ char	s[20];
 			k = c >> 8;
 		}
 
-		if ((i == 0) && (k == KEY_SPACE)) {
+		if ((ntasks == 0) && (k == KEY_SPACE)) {
 			clear_to_color(screen, BGC);
 			rect(screen, XMIN-L-1,BASE-1,XMAX+L+1,TOP+BASE+L+1,14);
 		}
 
-		if ((i < MAX_TASKS) && (k == KEY_SPACE)) {
-			task_create(i, palla, PER, DREL, PRIO-i, ACT);
-			printf("Task %d created and activated\n", i);
-			i++;
+		if ((ntasks < MAX_TASKS) && (k == KEY_SPACE)) {
+			i = task_create(palla, PER, DREL, PRIO-i, ACT);
+			if (i != -1) {
+			         printf("Task %d created and activated\n", i);
+			         ntasks++;
+			}
+			else {
+			  printf("Error in creating task!\n");
+			}
 		}
 
 		if ((k >= KEY_0) && (k <= KEY_9)) {
@@ -178,8 +183,8 @@ char	s[20];
 			pthread_mutex_unlock(&mxv);
 		}
 
-		if ((k == KEY_O) && (i > 9)) {
-			for (j=10; j<i; j++) {
+		if ((k == KEY_O) && (ntasks > 9)) {
+			for (j=10; j<ntasks; j++) {
 				h = rand()%(TOP-BASE);
 				a = 2. * G * (float)h;
 				pthread_mutex_lock(&mxv);
@@ -189,7 +194,7 @@ char	s[20];
 		}
 
 		if (k == KEY_A) {
-			for (j=0; j<i; j++) {
+			for (j=0; j<ntasks; j++) {
 				h = rand()%(TOP-BASE);
 				a = 2. * G * (float)h;
 				pthread_mutex_lock(&mxv);
@@ -198,7 +203,7 @@ char	s[20];
 			}
 		}
 
-		for (j=0; j<i; j++) {
+		for (j=0; j<ntasks; j++) {
 			sprintf(s, "%d", task_dmiss(j));
 			textout_ex(screen, font, s, 50+j*48, 450, 7, 0);
 		}

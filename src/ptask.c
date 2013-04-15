@@ -1,24 +1,27 @@
-/*--------------------------------------------------------------*/
-/*  Library for PERIODIC TASKS using clock_nanosleep		*/
-/*--------------------------------------------------------------*/
-
 #include <pthread.h>
 #include "ptask.h"
 
 pthread_t	         _tid[MAX_TASKS];
 struct task_par	         _tp[MAX_TASKS];
 int                      first_free;
-static pthread_mutex_t   _tp_mutex;
-
+static pthread_mutex_t   _tp_mutex; /** this is used to protect the 
+					_tp data structure from concurrent
+					accesses from the main and the 
+					threads */
 #define _TP_BUSY    -2
 #define _TP_NOMORE  -1
 
 sem_t		   _tsem[MAX_TASKS];	/* for task_activate	*/
-pthread_barrier_t  _barg[MAX_GROUPS];	/* for group_activate	*/
 
 tspec_t ptask_t0;	        /* system start time		*/
 int     ptask_policy;		/* common scheduling policy	*/
 
+/**
+   This function returns a free descriptor, or -1 if there are no more
+   free descriptors. _tp is organised as a linked list, first_free is
+   the head of the list. This extracts from the head. It uses the
+   _tp_mutex to protect the critical section.
+ */
 static int allocate_tp()
 {
     int x = first_free;
@@ -36,6 +39,10 @@ static int allocate_tp()
     }
 }
 
+/**
+   Frees a descriptor. It inserts the free descriptor at the head of
+   the queue. It uses the _tp_mutex to protect the critical section.
+ */
 static void release_tp(int i)
 {
     pthread_mutex_lock(&_tp_mutex);
@@ -265,10 +272,11 @@ int	deadline_miss(int i)
 /*  TASK_CREATE: initialize thread parameters and creates a	*/
 /*		 thread						*/
 /*--------------------------------------------------------------*/
-
+/**
+   @todo add error handling through the use of errno.
+ */
 int task_create(
-    int	i,
-    void	(*task)(void),
+    void (*task)(void),
     int	period,
     int	drel,
     int	prio,
@@ -277,6 +285,9 @@ int task_create(
     pthread_attr_t	myatt;
     struct	sched_param mypar;
     int	tret;
+    
+    int i = allocate_tp();
+    if (i == _TP_NOMORE) return -1;
     
     _tp[i].arg = i;
     _tp[i].wcet = 0;
@@ -294,9 +305,15 @@ int task_create(
     pthread_attr_setschedparam(&myatt, &mypar);
     tret = pthread_create(&_tid[i], &myatt, 
 			  ptask_std_body, (void*)(&_tp[i]));
-
-    if (aflag == ACT) task_activate(i);
-    return tret;
+    
+    if (tret == 0) {
+      if (aflag == ACT) task_activate(i);
+      return i;
+    }
+    else {
+      release_tp(i);
+      return -1;
+    } 
 }
 
 /*--------------------------------------------------------------*/
