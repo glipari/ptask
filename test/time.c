@@ -57,7 +57,8 @@ int main()
     // test the subtraction
     t2 = tspec_from(delta2, MICRO);
     t3 = tspec_from(delta3, MICRO);
-    delta1 = tspec_sub(&t2, &t3, MICRO);
+    tspec_t diff = tspec_sub(&t2, &t3);
+    delta1 = tspec_to(&diff, MICRO);
     assert (delta1 = (delta3 - delta2));
     
     return 0;

@@ -37,8 +37,9 @@ tspec_t tspec_add(const tspec_t *a, const tspec_t *b);
 /**     Compares two timespecs */
 int     tspec_cmp(const tspec_t *a, const tspec_t *b);
 /**     delta = a - b */
-ptime_t tspec_sub(const tspec_t *a, const tspec_t *b, int unit);
+tspec_t tspec_sub(const tspec_t *a, const tspec_t *b);
 /**     d = a - delta */
 tspec_t tspec_sub_delta(const tspec_t *a, ptime_t delta, int unit);
+
 
 #endif 

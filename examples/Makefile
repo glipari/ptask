@@ -30,10 +30,10 @@ depend:
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-ball : $(OBJS_ball) 
+ball : $(OBJS_ball) ../src/libptask.a
 	$(LD) -o $@ $^ $(LDFLAGS) `allegro-config --libs`
 
-pbarr_example : $(OBJS_barr)
+pbarr_example : $(OBJS_barr) ../src/libptask.a
 	$(LD) -o $@ $^ $(LDFLAGS)
 
 # Add the following two lines for every new program. For example, in

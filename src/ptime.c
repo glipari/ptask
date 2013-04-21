@@ -134,7 +134,7 @@ int tspec_cmp(const tspec_t *a, const tspec_t *b)
     return 0;
 }
 
-ptime_t tspec_sub(const tspec_t *a, const tspec_t *b, int unit)
+tspec_t tspec_sub(const tspec_t *a, const tspec_t *b)
 {
     tspec_t d; 
 
@@ -144,7 +144,7 @@ ptime_t tspec_sub(const tspec_t *a, const tspec_t *b, int unit)
 	d.tv_nsec += 1000000000;
 	d.tv_sec -= 1;
     }
-    return tspec_to(&d, unit);
+    return d;//tspec_to(&d, unit);
 }
 
 /**
@@ -162,3 +162,4 @@ tspec_t tspec_sub_delta(const tspec_t *a, ptime_t delta, int unit)
     }
     return d;
 }
+

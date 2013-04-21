@@ -1,5 +1,37 @@
+#define _GNU_SOURCE
 #include <pthread.h>
+#include <unistd.h>
 #include "ptask.h"
+#include "pmutex.h"
+#include "tstat.h"
+
+struct task_par {
+    int  arg;		/* task argument		*/
+    long wcet;		/* task WCET in microseconds	*/
+    tspec_t period;	/* task period 	                */
+    tspec_t deadline;	/* relative deadline 	        */
+    int	 priority;	/* task priority in [0,99]	*/
+    int  dmiss;		/* number of deadline miss	*/
+    tspec_t at;		/* next activation time		*/
+    tspec_t dl;		/* current absolute deadline	*/
+    void (*body)(void); /* the actual body of the task  */
+    int free;           /* >=0 if this descr is avail.  */
+    int act_flag;       /* flag for postponed activ.    */
+    int wait_flag;      /* flag for implicit waiting    */
+    int measure_flag;   /* flag for measurement         */
+};
+
+
+const task_spec_t TASK_SPEC_DFL = {
+  .period = {1, 0},  
+  .rdline = {1, 0},
+  .priority = 1, 
+  .group_id = -1, 
+  .processor = 0, 
+  .act_flag = ACT, 
+  .wait_flag = 1,
+  .measure = 0
+};
 
 pthread_t	         _tid[MAX_TASKS];
 struct task_par	         _tp[MAX_TASKS];
@@ -21,7 +53,7 @@ int     ptask_policy;		/* common scheduling policy	*/
    free descriptors. _tp is organised as a linked list, first_free is
    the head of the list. This extracts from the head. It uses the
    _tp_mutex to protect the critical section.
- */
+*/
 static int allocate_tp()
 {
     int x = first_free;
@@ -69,15 +101,27 @@ static void ptask_exit_handler(void *arg)
     release_tp(ptask_idx);
 }
 
-// the thread body. It does some bookkeeping and install the
-// exit handler, then calls the real user task body 
-// on exit, it cleans up everything
+// the thread body. 
+// 1) It does some book keeping and installs the
+//    exit handler. 
+// 2) if necessary, waits for the first activation 
+// 3) then calls the real user task body
+// 40 on exit, it cleans up everything
 static void *ptask_std_body(void *arg)
 {
     struct task_par *pdes = (struct task_par *)arg;
-    pthread_cleanup_push(ptask_exit_handler, 0);
 
     ptask_idx = task_argument(arg);
+    if (_tp[ptask_idx].measure_flag) 
+	tstat_init(ptask_idx);
+
+    pthread_cleanup_push(ptask_exit_handler, 0);
+
+    if (_tp[ptask_idx].wait_flag == 1)
+      wait_for_activation();
+    else 
+      clock_gettime(CLOCK_MONOTONIC, &_tp[ptask_idx].at);
+    
     (*pdes->body)();
         
     pthread_cleanup_pop(1);
@@ -103,7 +147,7 @@ void ptask_init(int policy)
 	else _tp[i].free = i+1;
     }
     first_free = 0;
-    pthread_mutex_init(&_tp_mutex, 0);
+    pmux_create_pc(&_tp_mutex, 99);
 
     // initialize time
     tspec_init();
@@ -112,7 +156,7 @@ void ptask_init(int policy)
 /*--------------------------------------------------------------*/
 /*  WAIT_FOR_ACTIVATION: suspends the calling thread until the	*/
 /*		     	 task_activation function is called	*/
-/*		     	 and compute the next activation time	*/
+/*		     	 and computes the next activation time	*/
 /*--------------------------------------------------------------*/
 void	wait_for_activation()
 {
@@ -121,14 +165,10 @@ void	wait_for_activation()
     sem_wait(&_tsem[ptask_idx]);
 }
 
-void set_activation(const tspec_t *off)
+void set_activation(const tspec_t *t)
 {
-    _tp[ptask_idx].at = tspec_add_delta(off, 
-					_tp[ptask_idx].period, 
-					MILLI);  
-    _tp[ptask_idx].dl = tspec_add_delta(off, 
-					_tp[ptask_idx].deadline, 
-					MILLI);  
+    _tp[ptask_idx].at = tspec_add(t, &_tp[ptask_idx].period);  
+    _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline);  
 }
 
 
@@ -139,18 +179,20 @@ void set_activation(const tspec_t *off)
 void	wait_for_period()
 {
 
+    if (_tp[ptask_idx].measure_flag) tstat_record(ptask_idx);
+    
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, 
 		    &(_tp[ptask_idx].at), NULL);
 
     /* when awaken, update next activation time */
-    _tp[ptask_idx].at = tspec_add_delta(&(_tp[ptask_idx].at), 
-					_tp[ptask_idx].period, MILLI);
+    _tp[ptask_idx].at = tspec_add(&(_tp[ptask_idx].at), 
+				  &_tp[ptask_idx].period);
     
     /* update absolute deadline */
-    _tp[ptask_idx].dl = tspec_add_delta(&(_tp[ptask_idx].dl), 
-					_tp[ptask_idx].period, MILLI);
+    _tp[ptask_idx].dl = tspec_add(&(_tp[ptask_idx].dl), 
+				  &_tp[ptask_idx].period);
 }
-
+ 
 /*--------------------------------------------------------------*/
 /*  TASK_ARGUMENT: returns the argument of task i		*/
 /*--------------------------------------------------------------*/
@@ -161,6 +203,12 @@ int task_argument(void* arg)
     
     tp = (struct task_par *)arg;
     return tp->arg;
+}
+
+
+pthread_t get_threadid(int i)
+{
+  return _tid[i];
 }
 
 /*--------------------------------------------------------------*/
@@ -178,7 +226,7 @@ long	task_wcet(int i)
 
 int	task_period(int i)
 {
-    return _tp[i].period;
+    return tspec_to(&_tp[i].period, MILLI);
 }
 
 /*--------------------------------------------------------------*/
@@ -187,7 +235,7 @@ int	task_period(int i)
 
 int	task_deadline(int i)
 {
-    return _tp[i].deadline;
+    return tspec_to(&_tp[i].deadline, MILLI);
 }
 
 /*--------------------------------------------------------------*/
@@ -238,7 +286,7 @@ void	task_setwcet(int i, long wc)
 
 void	task_setperiod(int i, int per)
 {
-	_tp[i].period = per;
+    _tp[i].period = tspec_from(per, MILLI);
 }
 
 /*--------------------------------------------------------------*/
@@ -247,7 +295,7 @@ void	task_setperiod(int i, int per)
 
 void	task_setdeadline(int i, int dline)
 {
-    _tp[i].deadline = dline;
+    _tp[i].deadline = tspec_from(dline, MILLI);
 }
 
 /*--------------------------------------------------------------*/
@@ -272,9 +320,6 @@ int	deadline_miss(int i)
 /*  TASK_CREATE: initialize thread parameters and creates a	*/
 /*		 thread						*/
 /*--------------------------------------------------------------*/
-/**
-   @todo add error handling through the use of errno.
- */
 int task_create(
     void (*task)(void),
     int	period,
@@ -291,11 +336,13 @@ int task_create(
     
     _tp[i].arg = i;
     _tp[i].wcet = 0;
-    _tp[i].period = period;
-    _tp[i].deadline = drel;
+    _tp[i].period = tspec_from(period, MILLI);
+    _tp[i].deadline = tspec_from(drel, MILLI);
     _tp[i].priority = prio;
     _tp[i].dmiss = 0;
     _tp[i].body = task;
+    _tp[i].act_flag = aflag;
+    _tp[i].wait_flag = 0;
 
     pthread_attr_init(&myatt);
     if (ptask_policy != SCHED_OTHER)
@@ -328,11 +375,11 @@ void	task_activate(int i)
     clock_gettime(CLOCK_MONOTONIC, &t);
 
     _tp[i].dl = t;
-    _tp[i].dl = tspec_add_delta(&(_tp[i].dl), _tp[i].deadline, MILLI);
+    _tp[i].dl = tspec_add(&(_tp[i].dl), &_tp[i].deadline);
 
     /* compute the next activation time */
     _tp[i].at = t;
-    _tp[i].at = tspec_add_delta(&(_tp[i].at), _tp[i].period, MILLI);
+    _tp[i].at = tspec_add(&(_tp[i].at), &_tp[i].period);
 
     /* send the activation signal */
     sem_post(&_tsem[i]);
@@ -340,7 +387,69 @@ void	task_activate(int i)
 
 /*--------------------------------------------------------------*/
 
+int task_migrate_to(int core_id) 
+{
+   int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+   if (core_id >= num_cores)
+      return -1;
+
+   cpu_set_t cpuset;
+   CPU_ZERO(&cpuset);
+   CPU_SET(core_id, &cpuset);
+
+   pthread_t current_thread = pthread_self();    
+   return pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
+}
+
+int ptask_getnumcores()
+{
+  return sysconf(_SC_NPROCESSORS_ONLN);
+}
 
 
+int task_create_ex(task_spec_t *tp, void (*task)(void))
+{
+    pthread_attr_t	myatt;
+    struct	sched_param mypar;
+    int	tret;
+    
+    int i = allocate_tp();
+    if (i == _TP_NOMORE) return -1;
+    
+    _tp[i].arg = i;
+    _tp[i].wcet = 0;
+    _tp[i].period = tp->period;
+    _tp[i].deadline = tp->rdline;
+    _tp[i].priority = tp->priority;
+    _tp[i].dmiss = 0;
+    _tp[i].body = task;
+    _tp[i].act_flag = tp->act_flag;
+    _tp[i].wait_flag = tp->wait_flag;
+    _tp[i].measure_flag = tp->measure;
 
+    pthread_attr_init(&myatt);
+    if (ptask_policy != SCHED_OTHER)
+	pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
+    pthread_attr_setschedpolicy(&myatt, ptask_policy);
+    mypar.sched_priority = _tp[i].priority;
+    pthread_attr_setschedparam(&myatt, &mypar);
+
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(tp->processor, &cpuset);
+
+    pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
+
+    tret = pthread_create(&_tid[i], &myatt, 
+			  ptask_std_body, (void*)(&_tp[i]));
+    
+    if (tret == 0) {
+      if (tp->act_flag == ACT) task_activate(i);
+      return i;
+    }
+    else {
+      release_tp(i);
+      return -1;
+    }
+}
 

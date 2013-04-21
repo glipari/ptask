@@ -9,7 +9,7 @@
 pbarrier_t barrier;
 tspec_t offset[NTASKS];
 
-extern struct task_par _tp[MAX_TASKS];
+//extern struct task_par _tp[MAX_TASKS];
 
 void task_body()
 {
@@ -31,9 +31,6 @@ void task_body()
 
     set_activation(&st);
 
-    printf("[TASK %d] start_time is %ld\n", i, 
-	       tspec_to_rel(&_tp[i].at, MILLI));
-
     tspec_t temp = tspec_add_delta(&st, task_period(i), MILLI);
     printf("[TASK %d] start_time should be %ld\n", i,
 	   tspec_to_rel(&temp, MILLI));
@@ -43,8 +40,6 @@ void task_body()
 	long now = tspec_gettime(MILLI); 
 	printf("[TASK %d] Starting Cycle at time %ld\n", i, now);
 	for (k=0; k<1000000; ++k);
-	printf("[TASK %d] Now waiting for %ld\n", i, 
-	       tspec_to_rel(&_tp[i].at, MILLI));
 	wait_for_period();
     }
 }

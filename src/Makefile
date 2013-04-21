@@ -1,7 +1,7 @@
 CC = gcc
 LD = gcc
 CFLAGS = -Wall -I.
-SRCS = ptask.c pbarrier.c ptime.c
+SRCS = ptask.c pbarrier.c ptime.c pmutex.c tstat.c
 OBJS = ${SRCS:.c=.o}
 DOBJ = ${SRCS:.c=.do}
 STATIC_LIB = libptask.a

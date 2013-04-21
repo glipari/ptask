@@ -11,6 +11,8 @@
 #include <allegro.h>
 #include <time.h>
 #include "ptask.h"
+#include "pmutex.h"
+#include "tstat.h"
 
 #define	XWIN	640
 #define	YWIN	480
@@ -31,8 +33,8 @@
 float   v0[MAX_TASKS];		/* impact velocity with floor   */
 
 /* mutual esclusion semaphores  */
-pthread_mutex_t mxa = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mxv = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mxa;// = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mxv;// = PTHREAD_MUTEX_INITIALIZER;
 
 int end = 0;
 
@@ -48,6 +50,9 @@ void init()
 	rect(screen, XMIN-L-1,BASE-1,XMAX+L+1,TOP+BASE+L+1,14);
 	textout_centre_ex(screen, font, "SPACE to create a fly", XWIN/2, YWIN/2, 14, 0);
 	textout_centre_ex(screen, font, "ESC exit", XWIN/2, YWIN/2 + 30, 14, 0);
+
+	pmux_create_pi(&mxa);
+	pmux_create_pi(&mxv);
 
 	ptask_init(SCHED_FIFO);
 }
@@ -140,78 +145,103 @@ long	j, k;
 
 int	main(void)
 {
-int	c;			/* character from keyboard	*/
-int	i, j, k;		/* number of tasks created	*/
-double  a;			/* temporary variable       */
-int	h;			/* temporary variable       */
-char	s[20];
-int     ntasks = 0;             /* total number of created tasks*/
+    int	c;			/* character from keyboard	*/
+    int	i, j, k;		/* number of tasks created	*/
+    double  a;			/* temporary variable           */
+    int	h;			/* temporary variable           */
+    char	s[20];
+    int     ntasks = 0;         /* total number of created tasks*/
+    int last_proc = 0;          /* last assigned processor      */
+    int max_proc = ptask_getnumcores(); /* max number of procs  */
 
-	init();
+    init();
 
-	a = 2. * G * (float)TOP;
-	for (i=0; i<MAX_TASKS; i++) v0[i] = sqrt(a);
+    a = 2. * G * (float)TOP;
+    for (i=0; i<MAX_TASKS; i++) v0[i] = sqrt(a);
 
-	i = 0;
-	do {
-		k = 0;
-		if (keypressed()) {
-			c = readkey();
-			k = c >> 8;
-		}
+    i = 0;
+    do {
+	k = 0;
+	if (keypressed()) {
+	    c = readkey();
+	    k = c >> 8;
+	}
 
-		if ((ntasks == 0) && (k == KEY_SPACE)) {
-			clear_to_color(screen, BGC);
-			rect(screen, XMIN-L-1,BASE-1,XMAX+L+1,TOP+BASE+L+1,14);
-		}
+	if ((ntasks == 0) && (k == KEY_SPACE)) {
+	    clear_to_color(screen, BGC);
+	    rect(screen, XMIN-L-1,BASE-1,XMAX+L+1,TOP+BASE+L+1,14);
+	}
 
-		if ((ntasks < MAX_TASKS) && (k == KEY_SPACE)) {
-			i = task_create(palla, PER, DREL, PRIO-i, ACT);
-			if (i != -1) {
-			         printf("Task %d created and activated\n", i);
-			         ntasks++;
-			}
-			else {
-			  printf("Error in creating task!\n");
-			}
-		}
+	if ((ntasks < MAX_TASKS) && (k == KEY_SPACE)) {
+	    task_spec_t params = TASK_SPEC_DFL;
+	    params.period = tspec_from(PER, MILLI);
+	    params.rdline = tspec_from(DREL, MILLI);
+	    params.priority = PRIO-i;
+	    params.measure = 1;
+	    params.wait_flag = 0;
+	    /* a round robin assignment */
+	    params.processor = last_proc++;
+	    if (last_proc >= max_proc) last_proc = 0;
 
-		if ((k >= KEY_0) && (k <= KEY_9)) {
-			a = 2. * G * (float)TOP;
-			pthread_mutex_lock(&mxv);
-			v0[k - KEY_0] = sqrt(a);
-			pthread_mutex_unlock(&mxv);
-		}
+	    /** i = task_create(palla, PER, DREL, PRIO-i, ACT); */
+	    i = task_create_ex(&params, palla);
+	    if (i != -1) {
+		printf("Task %d created and activated\n", i);
+		ntasks++;
+	    }
+	    else {
+		printf("Error in creating task!\n");
+	    }
+	}
 
-		if ((k == KEY_O) && (ntasks > 9)) {
-			for (j=10; j<ntasks; j++) {
-				h = rand()%(TOP-BASE);
-				a = 2. * G * (float)h;
-				pthread_mutex_lock(&mxv);
-				v0[j] = sqrt(a);
-				pthread_mutex_unlock(&mxv);
-			}
-		}
+	if ((k >= KEY_0) && (k <= KEY_9)) {
+	    a = 2. * G * (float)TOP;
+	    pthread_mutex_lock(&mxv);
+	    v0[k - KEY_0] = sqrt(a);
+	    pthread_mutex_unlock(&mxv);
+	}
 
-		if (k == KEY_A) {
-			for (j=0; j<ntasks; j++) {
-				h = rand()%(TOP-BASE);
-				a = 2. * G * (float)h;
-				pthread_mutex_lock(&mxv);
-				v0[j] = sqrt(a);
-				pthread_mutex_unlock(&mxv);
-			}
-		}
+	if ((k == KEY_O) && (ntasks > 9)) {
+	    for (j=10; j<ntasks; j++) {
+		h = rand()%(TOP-BASE);
+		a = 2. * G * (float)h;
+		pthread_mutex_lock(&mxv);
+		v0[j] = sqrt(a);
+		pthread_mutex_unlock(&mxv);
+	    }
+	}
 
-		for (j=0; j<ntasks; j++) {
-			sprintf(s, "%d", task_dmiss(j));
-			textout_ex(screen, font, s, 50+j*48, 450, 7, 0);
-		}
+	if (k == KEY_A) {
+	    for (j=0; j<ntasks; j++) {
+		h = rand()%(TOP-BASE);
+		a = 2. * G * (float)h;
+		pthread_mutex_lock(&mxv);
+		v0[j] = sqrt(a);
+		pthread_mutex_unlock(&mxv);
+	    }
+	}
 
-	} while (k != KEY_ESC);
-	
-	allegro_exit();
-	return 0;
+	for (j=0; j<ntasks; j++) {
+	    sprintf(s, "%d", task_dmiss(j));
+	    textout_ex(screen, font, s, 50+j*48, 450, 7, 0);
+	}
+
+    } while (k != KEY_ESC);
+    
+    for (j=0; j<ntasks; j++) {
+	tspec_t wcet = tstat_getwcet(j);
+	tspec_t acet = tstat_getavg(j);
+
+	printf("TASK %d: WCET = %ld\t ACET = %ld\t NINST=%d\n", 
+	       j, 
+	       tspec_to(&wcet, MICRO), 
+	       tspec_to(&acet, MICRO), 
+	       tstat_getnuminstances(j)); 
+    }
+
+
+    allegro_exit();
+    return 0;
 }
 
 /*--------------------------------------------------------------*/
