@@ -6,7 +6,8 @@
 #include "tstat.h"
 
 struct task_par {
-    int  arg;		/* task argument		*/
+    void * arg;         /* task argument                */
+    int  index;		/* task argument		*/
     long wcet;		/* task WCET in microseconds	*/
     tspec_t period;	/* task period 	                */
     tspec_t deadline;	/* relative deadline 	        */
@@ -19,6 +20,7 @@ struct task_par {
     int act_flag;       /* flag for postponed activ.    */
     int wait_flag;      /* flag for implicit waiting    */
     int measure_flag;   /* flag for measurement         */
+    rtmode_t *modes;    /* the mode descripton          */
 };
 
 
@@ -26,11 +28,13 @@ const task_spec_t TASK_SPEC_DFL = {
   .period = {1, 0},  
   .rdline = {1, 0},
   .priority = 1, 
-  .group_id = -1, 
   .processor = 0, 
   .act_flag = ACT, 
   .wait_flag = 1,
-  .measure = 0
+  .measure = 0,
+  .arg = NULL,
+  .modes = NULL,
+  .nmodes = 0
 };
 
 pthread_t	         _tid[MAX_TASKS];
@@ -110,8 +114,8 @@ static void ptask_exit_handler(void *arg)
 static void *ptask_std_body(void *arg)
 {
     struct task_par *pdes = (struct task_par *)arg;
-
-    ptask_idx = task_argument(arg);
+    
+    ptask_idx = pdes->index; 
     if (_tp[ptask_idx].measure_flag) 
 	tstat_init(ptask_idx);
 
@@ -178,37 +182,44 @@ void set_activation(const tspec_t *t)
 /*--------------------------------------------------------------*/
 void	wait_for_period()
 {
-
-    if (_tp[ptask_idx].measure_flag) tstat_record(ptask_idx);
+    if (_tp[ptask_idx].measure_flag) 
+	tstat_record(ptask_idx);
     
-    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, 
-		    &(_tp[ptask_idx].at), NULL);
-
-    /* when awaken, update next activation time */
-    _tp[ptask_idx].at = tspec_add(&(_tp[ptask_idx].at), 
-				  &_tp[ptask_idx].period);
-    
-    /* update absolute deadline */
-    _tp[ptask_idx].dl = tspec_add(&(_tp[ptask_idx].dl), 
-				  &_tp[ptask_idx].period);
+    if (_tp[ptask_idx].modes != NULL && 
+	!rtmode_taskfind(_tp[ptask_idx].modes, ptask_idx)) {
+	gsem_post(&_tp[ptask_idx].modes->manager);
+	wait_for_activation();
+	return;
+    }
+    else {
+	
+	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, 
+			&(_tp[ptask_idx].at), NULL);
+	
+	/* when awaken, update next activation time */
+	_tp[ptask_idx].at = tspec_add(&(_tp[ptask_idx].at), 
+				      &_tp[ptask_idx].period);
+	
+	/* update absolute deadline */
+	_tp[ptask_idx].dl = tspec_add(&(_tp[ptask_idx].dl), 
+				      &_tp[ptask_idx].period);
+	return;
+    }
 }
  
 /*--------------------------------------------------------------*/
 /*  TASK_ARGUMENT: returns the argument of task i		*/
 /*--------------------------------------------------------------*/
 
-int task_argument(void* arg)
+void * task_argument()
 {
-    struct task_par	*tp;
-    
-    tp = (struct task_par *)arg;
-    return tp->arg;
+    return _tp[ptask_idx].arg;
 }
 
 
 pthread_t get_threadid(int i)
 {
-  return _tid[i];
+    return _tid[i];
 }
 
 /*--------------------------------------------------------------*/
@@ -334,7 +345,7 @@ int task_create(
     int i = allocate_tp();
     if (i == _TP_NOMORE) return -1;
     
-    _tp[i].arg = i;
+    _tp[i].index = i;
     _tp[i].wcet = 0;
     _tp[i].period = tspec_from(period, MILLI);
     _tp[i].deadline = tspec_from(drel, MILLI);
@@ -343,6 +354,8 @@ int task_create(
     _tp[i].body = task;
     _tp[i].act_flag = aflag;
     _tp[i].wait_flag = 0;
+    _tp[i].arg = NULL;
+    _tp[i].modes = NULL;
 
     pthread_attr_init(&myatt);
     if (ptask_policy != SCHED_OTHER)
@@ -374,12 +387,10 @@ void	task_activate(int i)
     /* compute the absolute deadline */
     clock_gettime(CLOCK_MONOTONIC, &t);
 
-    _tp[i].dl = t;
-    _tp[i].dl = tspec_add(&(_tp[i].dl), &_tp[i].deadline);
+    _tp[i].dl = tspec_add(&t, &_tp[i].deadline);
 
     /* compute the next activation time */
-    _tp[i].at = t;
-    _tp[i].at = tspec_add(&(_tp[i].at), &_tp[i].period);
+    _tp[i].at = tspec_add(&t, &_tp[i].period);
 
     /* send the activation signal */
     sem_post(&_tsem[i]);
@@ -412,11 +423,12 @@ int task_create_ex(task_spec_t *tp, void (*task)(void))
     pthread_attr_t	myatt;
     struct	sched_param mypar;
     int	tret;
+    int j=0;
     
     int i = allocate_tp();
     if (i == _TP_NOMORE) return -1;
     
-    _tp[i].arg = i;
+    _tp[i].index = i;
     _tp[i].wcet = 0;
     _tp[i].period = tp->period;
     _tp[i].deadline = tp->rdline;
@@ -426,6 +438,17 @@ int task_create_ex(task_spec_t *tp, void (*task)(void))
     _tp[i].act_flag = tp->act_flag;
     _tp[i].wait_flag = tp->wait_flag;
     _tp[i].measure_flag = tp->measure;
+    _tp[i].arg = tp->arg;
+    _tp[i].modes = tp->modes;
+    if (tp->modes != NULL) {
+	for (j=0; j<tp->nmodes; ++j) { 
+	    int result = rtmode_addtask(tp->modes, tp->mode_list[j], i);
+	    if (result == 0) {
+		release_tp(i);
+		return -1;
+	    }
+	}
+    }
 
     pthread_attr_init(&myatt);
     if (ptask_policy != SCHED_OTHER)

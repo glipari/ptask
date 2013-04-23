@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "pbarrier.h"
+#include "pmutex.h"
 
 void pbarrier_init(pbarrier_t *pb, int nth)
 {
@@ -35,4 +36,33 @@ tspec_t pbarrier_wait(pbarrier_t *pb, tspec_t *offset)
 	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wake_up, 0);
 	return wake_up;
     }
+}
+
+
+void gsem_wait(gsem_t *gs, int nsignals)
+{
+  pthread_mutex_lock(&gs->m);
+  gs->nsignals = nsignals;
+  if (gs->narrived < gs->nsignals) 
+    pthread_cond_wait(&gs->c, &gs->m);
+  gs->narrived = 0;
+  gs->nsignals = 0;
+  pthread_mutex_unlock(&gs->m);
+}
+
+void gsem_post(gsem_t *gs)
+{
+  pthread_mutex_lock(&gs->m);
+  gs->narrived++;
+  if (gs->nsignals == gs->narrived) 
+    pthread_cond_signal(&gs->c);
+  pthread_mutex_unlock(&gs->m);
+}
+
+void gsem_init(gsem_t *gs)
+{
+  pmux_create_pc(&gs->m, 99);
+  pthread_cond_init(&gs->c, 0);
+  gs->nsignals = 0;
+  gs->narrived = 0;
 }

@@ -5,13 +5,16 @@ STATIC_LIB = libptask.a
 LDFLAGS = -L../src/ -lptask -lrt -lpthread -lm
 
 # Add the name of the exec file
-EXECS = ball pbarr_example 
+EXECS = ball pbarr_example modes
 
 SRCS_ball = ball.c
 OBJS_ball = ${SRCS_ball:.c=.o}
 
 SRCS_barr = pbarr_example.c 
 OBJS_barr = ${SRCS_barr:.c=.o}
+
+SRCS_modes = modes.c 
+OBJS_modes = ${SRCS_modes:.c=.o}
 
 # Add the following two lines for every new program, listing the
 # source files needed. For example, in order to add a "spike" example,
@@ -35,6 +38,9 @@ ball : $(OBJS_ball) ../src/libptask.a
 
 pbarr_example : $(OBJS_barr) ../src/libptask.a
 	$(LD) -o $@ $^ $(LDFLAGS)
+
+modes : $(OBJS_modes) ../src/libptask.a
+	$(LD) -o $@ $^ $(LDFLAGS) 
 
 # Add the following two lines for every new program. For example, in
 # order to add a spike example, uncomment the following two lines.

@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <ptime.h>
+#include <rtmode.h>
 
 /*--------------------------------------------------------------*/
 
@@ -18,6 +19,7 @@
 #define	NOACT		0
 #define	ACT		1
 
+
 /**
    This structure is used to simplify the creation of a task by
    setting standard arguments, 
@@ -25,15 +27,17 @@
 typedef struct _tst {
   tspec_t period; 
   tspec_t rdline;
-  int priority;              // from 0 to 99
-  int group_id;              // -1 if no group
-  int processor;             // up to 16 processors are available
-  int act_flag;              // ACT if the create activates the task
-  int wait_flag;             /* if 1, the task waits for an act. *  
-                              *      before starting             *
-                              * if 0, the task starts right away */
-  int measure;               /* if 1, activates measurement of   * 
-			      *	exec time                        */
+  int priority;              /*< from 0 to 99                         */
+  int processor;             /*< processor id                         */
+  int act_flag;              /*< ACT if the create activates the task */
+  int wait_flag;             /*< if 1, the task waits for an act.     *  
+                              *      before starting                  *
+                              *  if 0, the task starts right away     */
+  int measure;               /*< if 1, activates measure of exec time */
+  void *arg;                 /*< pointer to a task argument           */
+  rtmode_t *modes;           /*< a pointer to the mode handler        */
+  int mode_list[RTMODE_MAX_MODES];  /*< the maximum number of modes   */
+  int nmodes;               /*< num of modes in which the task is act */
 } task_spec_t;
 
 extern const task_spec_t TASK_SPEC_DFL;
@@ -55,7 +59,7 @@ pthread_t get_threadid(int i);    /** returns the thread own id    */
 int	  deadline_miss(int i);
 
 void	  task_setdeadline(int i, int dline);
-int       task_argument(void* arg);
+void *    task_argument();
 void	  task_setwcet(int i, long wc);
 long	  task_wcet(int i);
 void	  task_setperiod(int i, int per);
