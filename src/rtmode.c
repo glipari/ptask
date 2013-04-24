@@ -1,7 +1,8 @@
-#include "rtmode.h"
-#include "ptask.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "rtmode.h"
+#include "ptask.h"
+#include "pmutex.h"
 
 tasklist_t tlist_sub(tasklist_t *a, tasklist_t *b)
 {
@@ -40,6 +41,7 @@ static void mode_manager()
 {
     int i;
     rtmode_t *g = (rtmode_t *) task_argument();
+    tspec_t wakeup;
 
     while(1) {
 	wait_for_activation();
@@ -62,8 +64,10 @@ static void mode_manager()
 	}
 	// change mode
 	g->curr_mode = newmode;
-	if (toblock.ntasks != 0) 
-	    gsem_wait(&g->manager, toblock.ntasks);
+	if (toblock.ntasks != 0) {
+	  wakeup = maxsem_wait(&g->manager, toblock.ntasks);
+	  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeup, 0);
+	}
 	// all old tasks are now blocked, now activate all new tasks
 	for (i=0; i<towake.ntasks; ++i) 
 	    task_activate(towake.task_list[i]);
@@ -82,13 +86,13 @@ int rtmode_init(rtmode_t *g, int nmodes)
 	g->modes[i].ntasks = 0;
 
     g->curr_mode = -1;
-    gsem_init(&g->manager);
+    maxsem_init(&g->manager);
     g->head = g->tail = 0;
     
     task_spec_t param = TASK_SPEC_DFL;
     param.priority = 99;
     param.arg = g;
-    g->manager_id = task_create_ex(&param, mode_manager);
+    g->manager_id = task_create_ex(mode_manager, &param);
 
     return g->manager_id;
 }
@@ -118,4 +122,38 @@ int rtmode_taskfind(rtmode_t *g, int id)
 	    return 1;
 
     return 0;
+}
+
+
+void     maxsem_init(maxsem_t *gs)
+{
+  pmux_create_pc(&gs->m, 99);
+  pthread_cond_init(&gs->c, 0);
+  gs->nsignals = 0;
+  gs->narrived = 0;
+}
+
+void    maxsem_post(maxsem_t *gs, tspec_t *t)
+{
+  pthread_mutex_lock(&gs->m);
+  if (tspec_cmp(t, &gs->max) > 0) 
+    gs->max = *t;
+  gs->narrived++;
+  if (gs->nsignals == gs->narrived) 
+    pthread_cond_signal(&gs->c);
+  pthread_mutex_unlock(&gs->m);
+}
+
+tspec_t maxsem_wait(maxsem_t *gs, int nsignals)
+{
+  pthread_mutex_lock(&gs->m);
+  clock_gettime(CLOCK_MONOTONIC, &gs->max);
+  gs->nsignals = nsignals;
+  if (gs->narrived < gs->nsignals) 
+    pthread_cond_wait(&gs->c, &gs->m);
+  gs->narrived = 0;
+  gs->nsignals = 0;
+  tspec_t ret = gs->max;
+  pthread_mutex_unlock(&gs->m);
+  return ret;
 }

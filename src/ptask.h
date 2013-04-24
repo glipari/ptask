@@ -73,7 +73,7 @@ long	  task_absdl(int i);
 int	  task_create(void (*task)(void), 
 		      int period, int drel, int prio, int aflag);
 
-int	  task_create_ex(task_spec_t *tp, void (*task)(void));
+int	  task_create_ex(void (*task)(void), task_spec_t *tp);
 
 void	  task_activate(int i);
 int       task_migrate_to(int core_id); 

@@ -1,7 +1,8 @@
 #ifndef __RTMODE_H__ 
 #define __RTMODE_H__
 
-#include <pbarrier.h>
+#include <pthread.h>
+#include <ptime.h>
 
 #define RTMODE_MAX_MODES       16
 #define RTMODE_MAX_TASKS       16
@@ -15,11 +16,19 @@ typedef struct rtmode {
 void tasklist_init(tasklist_t *l);
 int tasklist_add(tasklist_t *l, int taskid);
 
-typedef struct taskgroup {
+typedef struct semwmax {
+  pthread_mutex_t m;
+  pthread_cond_t c;
+  int nsignals;
+  int narrived; 
+  tspec_t max;
+} maxsem_t;
+
+typedef struct modegroup {
   tasklist_t *modes;                 /*< list of modes               */
   int nmodes;                        /*< number of modes in the list */ 
   int curr_mode;                     /*< index of current mode       */
-  gsem_t manager;                    /*< semaphore for the manager   */
+  maxsem_t manager;                    /*< semaphore for the manager   */
   int manager_id;                    /*< id of task manager          */ 
   int queue[RTMODE_MAX_REQUESTS];
   int head, tail;
@@ -29,4 +38,9 @@ int  rtmode_init(rtmode_t *g, int nmodes);
 int  rtmode_addtask(rtmode_t *g, int modeid, int tid);
 void rtmode_changemode(rtmode_t *g, int new_mode_id);
 int  rtmode_taskfind(rtmode_t *g, int id);
+
+void    maxsem_init(maxsem_t *s);
+void    maxsem_post(maxsem_t *gs, tspec_t *t);
+tspec_t maxsem_wait(maxsem_t *gs, int nsignals);
+
 #endif

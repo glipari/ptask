@@ -184,7 +184,7 @@ int	main(void)
 	    if (last_proc >= max_proc) last_proc = 0;
 
 	    /** i = task_create(palla, PER, DREL, PRIO-i, ACT); */
-	    i = task_create_ex(&params, palla);
+	    i = task_create_ex(palla, &params);
 	    if (i != -1) {
 		printf("Task %d created and activated\n", i);
 		ntasks++;

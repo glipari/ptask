@@ -16,10 +16,10 @@
    that holds the data. Hence, if the tstat_get... functions are called 
    while the task executes, the result may be incorrect. 
 
-   The module is based on the CLOCK_THREAD_CPUTIME_ID specified by 
-   POSIX, so the precision of the results depend on the OS and 
+   The module is based on the CLOCK_THREAD_CPUTIME_ID specified by  
+   POSIX , so the precision of the results depend on the OS and 
    on the internal functioning of this timer. 
- */
+*/
 void tstat_init(int i);           /*< init the internal data struct. */
 void tstat_record(int i);         /*< record data                    */
 

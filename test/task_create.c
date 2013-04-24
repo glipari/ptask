@@ -30,7 +30,7 @@ int main()
   printf("After setting the parameters: act_flag = %d, wait_flag = %d\n",
 	 tparam.act_flag, tparam.wait_flag);
   
-  int index = task_create_ex(&tparam, mytask);
+  int index = task_create_ex(mytask, &tparam);
   if (index >= 0) printf("Task %d created\n", index);
 
   pthread_join(get_threadid(index), 0);

@@ -30,7 +30,7 @@ void pbarrier_init(pbarrier_t *pb, int nth);
 struct timespec pbarrier_wait(pbarrier_t *pb, tspec_t *offset);
 
 /**
-   Wait for n signals before unblocking the task
+   Wait for n signals before unblocking the waiting task
  */
 typedef struct gensem {
     pthread_mutex_t m;
@@ -42,5 +42,6 @@ typedef struct gensem {
 void gsem_wait(gsem_t *gs, int nsignals);
 void gsem_post(gsem_t *gs);
 void gsem_init(gsem_t *gs);
+
 
 #endif

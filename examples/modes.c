@@ -35,7 +35,7 @@ int main()
     param.nmodes = 2;
     param.mode_list[0] = MODE_ON;
     param.mode_list[1] = MODE_FAIL;
-    res = task_create_ex(&param, taskbody);
+    res = task_create_ex(taskbody, &param);
 
     printf("Creation of first task: %d\n", res);
     
@@ -46,7 +46,7 @@ int main()
     param.modes = &mymodes;
     param.nmodes = 1;
     param.mode_list[0] = MODE_ON;
-    res = task_create_ex(&param, taskbody);
+    res = task_create_ex(taskbody, &param);
     
     printf("Creation of second task: %d\n", res);
 
@@ -57,7 +57,7 @@ int main()
     param.modes = &mymodes;
     param.nmodes = 1;
     param.mode_list[0] = MODE_FAIL;
-    res = task_create_ex(&param, taskbody);
+    res = task_create_ex(taskbody, &param);
     
     printf("Creation of third task: %d\n", res);
 

@@ -363,6 +363,11 @@ int task_create(
     pthread_attr_setschedpolicy(&myatt, ptask_policy);
     mypar.sched_priority = _tp[i].priority;
     pthread_attr_setschedparam(&myatt, &mypar);
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(0, &cpuset);
+    pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
+
     tret = pthread_create(&_tid[i], &myatt, 
 			  ptask_std_body, (void*)(&_tp[i]));
     
@@ -418,7 +423,7 @@ int ptask_getnumcores()
 }
 
 
-int task_create_ex(task_spec_t *tp, void (*task)(void))
+int task_create_ex(void (*task)(void), task_spec_t *tp)
 {
     pthread_attr_t	myatt;
     struct	sched_param mypar;
@@ -465,6 +470,8 @@ int task_create_ex(task_spec_t *tp, void (*task)(void))
 
     tret = pthread_create(&_tid[i], &myatt, 
 			  ptask_std_body, (void*)(&_tp[i]));
+
+    pthread_attr_destroy(&myatt);
     
     if (tret == 0) {
       if (tp->act_flag == ACT) task_activate(i);
