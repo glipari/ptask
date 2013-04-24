@@ -187,7 +187,7 @@ void	wait_for_period()
     
     if (_tp[ptask_idx].modes != NULL && 
 	!rtmode_taskfind(_tp[ptask_idx].modes, ptask_idx)) {
-	gsem_post(&_tp[ptask_idx].modes->manager);
+	maxsem_post(&_tp[ptask_idx].modes->manager, &_tp[ptask_idx].at);
 	wait_for_activation();
 	return;
     }

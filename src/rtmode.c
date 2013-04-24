@@ -125,7 +125,7 @@ int rtmode_taskfind(rtmode_t *g, int id)
 }
 
 
-void     maxsem_init(maxsem_t *gs)
+void maxsem_init(maxsem_t *gs)
 {
   pmux_create_pc(&gs->m, 99);
   pthread_cond_init(&gs->c, 0);
@@ -133,7 +133,7 @@ void     maxsem_init(maxsem_t *gs)
   gs->narrived = 0;
 }
 
-void    maxsem_post(maxsem_t *gs, tspec_t *t)
+void maxsem_post(maxsem_t *gs, tspec_t *t)
 {
   pthread_mutex_lock(&gs->m);
   if (tspec_cmp(t, &gs->max) > 0) 
