@@ -211,7 +211,7 @@ int	dl, at = 0;
 	lev1 = LEV0 + DLEV*i - 2;
 	lev2 = LEV0 + DLEV*i - 2 - DEX;
 	col = 1 + i%15;
-	wait_for_activation();
+	//wait_for_activation();
 
 	while (x < 640L) {
 

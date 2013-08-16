@@ -1,18 +1,39 @@
 * Version 0.2 beta
-  Changes with respect to version 0.1
 
-** New ptask_init()
-   Now ptask_init() takes three parameters: the scheduling policy
-   (SCHED_FIFO, SCHED_RR or SCHED_OTHER), the global flag (PARTITIONED
-   or GLOBAL), and the semaphore protocol (PRIO_INHERITANCE or PRIO_CEILING).
+**  Changes with respect to version 0.1
 
-** Changes in the name of types
-   Now ptime_t -> ptime 
-   Now tspec_t -> tspec
+*** New ptask_init()
+    Now ptask_init() takes three parameters: the scheduling policy
+    (SCHED_FIFO, SCHED_RR or SCHED_OTHER), the global flag (PARTITIONED
+    or GLOBAL), and the semaphore protocol (PRIO_INHERITANCE or PRIO_CEILING).
+    
+*** Changes in the name of the types
+    Now ptime_t -> ptime 
+    Now tspec_t -> tspec
+    
+**** *WARNING* 
+     ptime is a common name, quite easy to come up with and use in
+     your program.  Maybe it is better to go back and use ptime_t
+     again
 
-   *WARNING* ptime is a common name, quite easy to come up with and use in your program.
-   Maybe it is better to go back and use ptime_t again
+*** wait_flag has been removed
 
+    Now, if you specify act_flag=ACT then the thread starts right away (as in 
+    pthread). If you specify act_flag=NOACT, then the thread waits for an 
+    explicit activation with the task_activate()
 
-** 
+**** TODO implement group activation
+
+** Known Issues
+
+***  ball.c crashes on exit. 
+     In particular, the allegro_exit() produces a core-dump.  I still
+     do not know what is going on with that
+     
+*** pcp.c sometimes crashes
+
+    Not clear why. Here is the error message:
+
+    > pcp: pthread_mutex_lock.c:459: __pthread_mutex_lock_full: Assertion `mutex->__data.__owner == 0' failed.
+    > Aborted (core dumped)
 

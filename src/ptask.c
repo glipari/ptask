@@ -125,7 +125,7 @@ static void *ptask_std_body(void *arg)
 
     pthread_cleanup_push(ptask_exit_handler, 0);
 
-    if (_tp[ptask_idx].act_flag == NOACT)
+    if (_tp[ptask_idx].act_flag == NOACT) 
       wait_for_activation();
     else 
       clock_gettime(CLOCK_MONOTONIC, &_tp[ptask_idx].at);
@@ -437,7 +437,6 @@ int ptask_getnumcores()
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-
 int task_create_ex(void (*task)(void), task_spec_t *tp)
 {
     pthread_attr_t	myatt;
@@ -456,7 +455,6 @@ int task_create_ex(void (*task)(void), task_spec_t *tp)
     _tp[i].dmiss = 0;
     _tp[i].body = task;
     _tp[i].act_flag = tp->act_flag;
-    //_tp[i].wait_flag = tp->wait_flag;
     _tp[i].measure_flag = tp->measure;
     _tp[i].arg = tp->arg;
     _tp[i].modes = tp->modes;

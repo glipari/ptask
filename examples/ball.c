@@ -54,7 +54,7 @@ void init()
 	pmux_create_pi(&mxa);
 	pmux_create_pi(&mxv);
 
-	ptask_init(SCHED_FIFO, PARTITIONED, PRIO_INHERITANCE);
+	ptask_init(SCHED_FIFO, GLOBAL, PRIO_INHERITANCE);
 }
 
 /*--------------------------------------------------------------*/
@@ -93,7 +93,8 @@ long	j, k;
 	t = vy / G;
 	dt = task_period(i) / 100.;
 
-	wait_for_activation();
+	// removed, unless a specific activation from the main is done
+	// wait_for_activation();
 
 	while (1) {
         	x = x0 + vx * tx;
@@ -178,7 +179,7 @@ int	main(void)
 	    params.rdline = tspec_from(DREL, MILLI);
 	    params.priority = PRIO-i;
 	    params.measure = 1;
-	    params.wait_flag = 0;
+	    params.act_flag = ACT;
 	    /* a round robin assignment */
 	    params.processor = last_proc++;
 	    if (last_proc >= max_proc) last_proc = 0;
@@ -190,7 +191,9 @@ int	main(void)
 		ntasks++;
 	    }
 	    else {
-		printf("Error in creating task!\n");
+		allegro_exit();
+	        printf("Error in creating task!\n");
+		exit(-1);
 	    }
 	}
 
@@ -228,6 +231,7 @@ int	main(void)
 
     } while (k != KEY_ESC);
     
+    printf("Now printing the stats\n");
     for (j=0; j<ntasks; j++) {
 	tspec wcet = tstat_getwcet(j);
 	tspec acet = tstat_getavg(j);
@@ -238,8 +242,8 @@ int	main(void)
 	       tspec_to(&acet, MICRO), 
 	       tstat_getnuminstances(j)); 
     }
-
-
+    
+    printf("End of statistics\n");
     allegro_exit();
     return 0;
 }
