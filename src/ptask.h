@@ -32,9 +32,7 @@ typedef struct _tst {
   int priority;              /*< from 0 to 99                         */
   int processor;             /*< processor id                         */
   int act_flag;              /*< ACT if the create activates the task */
-  int wait_flag;             /*< if 1, the task waits for an act.     *  
-                              *      before starting                  *
-                              *  if 0, the task starts right away     */
+
   int measure;               /*< if 1, activates measure of exec time */
   void *arg;                 /*< pointer to a task argument           */
   rtmode_t *modes;           /*< a pointer to the mode handler        */
@@ -91,12 +89,14 @@ int	  task_dmiss(int i);
 long	  task_atime(int i);
 long	  task_absdl(int i);
 
+
 int	  task_create(void (*task)(void), 
 		      int period, int drel, int prio, int aflag);
 
 int	  task_create_ex(void (*task)(void), task_spec_t *tp);
 
 void	  task_activate(int i);
+
 int       task_migrate_to(int core_id); 
 
 #endif

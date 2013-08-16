@@ -20,7 +20,7 @@ struct task_par {
     void (*body)(void); /* the actual body of the task  */
     int free;           /* >=0 if this descr is avail.  */
     int act_flag;       /* flag for postponed activ.    */
-    int wait_flag;      /* flag for implicit waiting    */
+  //int wait_flag;      /* flag for implicit waiting    */
     int measure_flag;   /* flag for measurement         */
     rtmode_t *modes;    /* the mode descripton          */
 };
@@ -32,7 +32,7 @@ const task_spec_t TASK_SPEC_DFL = {
   .priority = 1, 
   .processor = 0, 
   .act_flag = ACT, 
-  .wait_flag = 1,
+  //.wait_flag = 1,
   .measure = 0,
   .arg = NULL,
   .modes = NULL,
@@ -125,7 +125,7 @@ static void *ptask_std_body(void *arg)
 
     pthread_cleanup_push(ptask_exit_handler, 0);
 
-    if (_tp[ptask_idx].wait_flag == 1)
+    if (_tp[ptask_idx].act_flag == NOACT)
       wait_for_activation();
     else 
       clock_gettime(CLOCK_MONOTONIC, &_tp[ptask_idx].at);
@@ -363,7 +363,7 @@ int task_create(
     _tp[i].dmiss = 0;
     _tp[i].body = task;
     _tp[i].act_flag = aflag;
-    _tp[i].wait_flag = 0;
+    //_tp[i].wait_flag = 0;
     _tp[i].arg = NULL;
     _tp[i].modes = NULL;
 
@@ -387,7 +387,7 @@ int task_create(
     pthread_attr_destroy(&myatt);
     
     if (tret == 0) {
-      if (aflag == ACT) task_activate(i);
+      //if (aflag == ACT) task_activate(i);
       return i;
     }
     else {
@@ -456,7 +456,7 @@ int task_create_ex(void (*task)(void), task_spec_t *tp)
     _tp[i].dmiss = 0;
     _tp[i].body = task;
     _tp[i].act_flag = tp->act_flag;
-    _tp[i].wait_flag = tp->wait_flag;
+    //_tp[i].wait_flag = tp->wait_flag;
     _tp[i].measure_flag = tp->measure;
     _tp[i].arg = tp->arg;
     _tp[i].modes = tp->modes;
@@ -478,10 +478,12 @@ int task_create_ex(void (*task)(void), task_spec_t *tp)
     pthread_attr_setschedparam(&myatt, &mypar);
 
     cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(tp->processor, &cpuset);
-
-    pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
+    if (ptask_global == PARTITIONED) {
+      CPU_ZERO(&cpuset);
+      CPU_SET(tp->processor, &cpuset);
+      
+      pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
+    }
 
     tret = pthread_create(&_tid[i], &myatt, 
 			  ptask_std_body, (void*)(&_tp[i]));
@@ -489,7 +491,7 @@ int task_create_ex(void (*task)(void), task_spec_t *tp)
     pthread_attr_destroy(&myatt);
     
     if (tret == 0) {
-      if (tp->act_flag == ACT) task_activate(i);
+      //if (tp->act_flag == ACT) task_activate(i);
       return i;
     }
     else {
