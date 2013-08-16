@@ -229,8 +229,8 @@ int	main(void)
     } while (k != KEY_ESC);
     
     for (j=0; j<ntasks; j++) {
-	tspec_t wcet = tstat_getwcet(j);
-	tspec_t acet = tstat_getavg(j);
+	tspec wcet = tstat_getwcet(j);
+	tspec acet = tstat_getavg(j);
 
 	printf("TASK %d: WCET = %ld\t ACET = %ld\t NINST=%d\n", 
 	       j, 

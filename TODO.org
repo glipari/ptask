@@ -1,0 +1,107 @@
+* Things to be done
+
+** DONE Si possono mischiare PI e PC?
+   secondo noi no, succede casino. 
+   
+   Quindi
+
+   - si modifica la ptask_init() aggiungendo un parametro per
+     specificare il protocollo, PI o PC o SEM. 
+
+   - Il semaforo interno per la struttura _tp_mutex va creato del 
+     tipo giusto. 
+
+** DONE ptask_init()
+
+   Si aggiunge un ulteriore parametro GLOBAL, PARTITIONED
+
+   Se GLOBAL, si usa lo scheduler di Linux normalmente. 
+
+   Se PARTITIONED, ogni volta che si crea un task, si setta l'affinità
+   a un processore (per default, 0)
+
+** TODO la tspec_init deve essere invisibile
+
+** TODO Alternative per il prefisso delle funzioni
+
+   - ptask_
+   - pt_ 
+   - task_ 
+   
+** TODO Tipi per il tempo
+
+   - ptime è un intero, senza unità 
+   - internamente, per massima precisione, tspec 
+
+** TODO parametri di creazione del task
+  
+*** Rimuovere:
+
+   - period
+   - priority
+   - wait_flag 
+
+*** attivazione 
+   o lo creo senza farlo partire per attivarlo successivamente
+   oppure lo creo facendolo partire immediatamente. 
+
+   ACT  -->    IMMEDIATE   (default)
+   NO_ACT  --> DEFERRED   
+
+*** periodico o aperiodico
+
+   unificare la wait_for_period() e la wait_for_activation(), adesso
+   solo la seconda che decide cosa fare a seconda del "tipo" del task
+
+   - nella struttura interna, devo avere un campo "tipo". 
+   - posso impostare il tipo dinamicamente con una funzione set_type()
+   - alla creazione aggiungo un parametro nella funzione
+   
+   int idx = task_create(body, tipo, periodo, priorità, other_params);
+   
+*** parametri addizionali
+
+   seguire pthread, fare funzioni addizionali per cambiare i parametri
+   esempio:
+    
+   pt_init_rdline(p, rd);  
+
+   per i flag, aggiungere _flag in fondo al nome
+ 
+*** parametri dinamici
+
+   alcuni parametri si possono cambiare: 
+
+   void pt_set_period(taskid, val);
+   void pt_set_priority(taskid, val);
+
+   e funzioni per ritornare il valore attuale
+  
+   int pt_get_period(taskid);
+   int pt_get_priority(taskid);
+
+** TODO struttura interna
+
+   - cancellare wcet e funzioni relative
+
+** TODO deadline_miss
+
+   - aggiungere un flag nella struttura dati, che ci dice se l'ultima
+     istanza del task ha mancato la deadline.
+   
+   - fare in modo che la funzione deadline_miss si possa chiamare solo 
+     da dentro il task.
+
+** TODO Task groups con offset
+
+   da fare 
+
+** TODO aperiodico che parte ad un certo istante preciso. 
+
+  ptask_activate_at(taskid, abstime); 
+
+  quando si sveglia dal semaforo, fa una clock_nanosleep() per vedere
+  cosa fare. (serve un ulteriore flag o qualcosa di simile nella task_struct)
+
+** TODO Commentare bene i modi  
+

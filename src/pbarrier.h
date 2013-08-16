@@ -27,7 +27,7 @@ void pbarrier_init(pbarrier_t *pb, int nth);
    From that instant, the thread waits for offset time before it can
    wake up and execute (calling a nanosleep).
  */
-struct timespec pbarrier_wait(pbarrier_t *pb, tspec_t *offset);
+struct timespec pbarrier_wait(pbarrier_t *pb, tspec *offset);
 
 /**
    Wait for n signals before unblocking the waiting task

@@ -23,9 +23,9 @@
 void tstat_init(int i);           /*< init the internal data struct. */
 void tstat_record(int i);         /*< record data                    */
 
-tspec_t tstat_getwcet(int i);     /*< returns the task wcet          */
-tspec_t tstat_getavg(int i);      /*< returns the task av. exec time */
+tspec tstat_getwcet(int i);     /*< returns the task wcet          */
+tspec tstat_getavg(int i);      /*< returns the task av. exec time */
 int tstat_getnuminstances(int i); /*< returns the number of inst.    */
-tspec_t tstat_gettotal(int i);    /*< returns the total exec time    */
+tspec tstat_gettotal(int i);    /*< returns the total exec time    */
 
 #endif

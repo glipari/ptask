@@ -41,7 +41,7 @@ static void mode_manager()
 {
     int i;
     rtmode_t *g = (rtmode_t *) task_argument();
-    tspec_t wakeup;
+    tspec wakeup;
 
     while(1) {
 	wait_for_activation();
@@ -133,7 +133,7 @@ void maxsem_init(maxsem_t *gs)
   gs->narrived = 0;
 }
 
-void maxsem_post(maxsem_t *gs, tspec_t *t)
+void maxsem_post(maxsem_t *gs, tspec *t)
 {
   pthread_mutex_lock(&gs->m);
   if (tspec_cmp(t, &gs->max) > 0) 
@@ -144,7 +144,7 @@ void maxsem_post(maxsem_t *gs, tspec_t *t)
   pthread_mutex_unlock(&gs->m);
 }
 
-tspec_t maxsem_wait(maxsem_t *gs, int nsignals)
+tspec maxsem_wait(maxsem_t *gs, int nsignals)
 {
   pthread_mutex_lock(&gs->m);
   clock_gettime(CLOCK_MONOTONIC, &gs->max);
@@ -153,7 +153,7 @@ tspec_t maxsem_wait(maxsem_t *gs, int nsignals)
     pthread_cond_wait(&gs->c, &gs->m);
   gs->narrived = 0;
   gs->nsignals = 0;
-  tspec_t ret = gs->max;
+  tspec ret = gs->max;
   pthread_mutex_unlock(&gs->m);
   return ret;
 }

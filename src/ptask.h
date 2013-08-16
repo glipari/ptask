@@ -27,8 +27,8 @@ typedef enum {PRIO_INHERITANCE, PRIO_CEILING, NO_PROTOCOL} sem_protocol;
    setting standard arguments
  */
 typedef struct _tst {
-  tspec_t period; 
-  tspec_t rdline;
+  tspec period; 
+  tspec rdline;
   int priority;              /*< from 0 to 99                         */
   int processor;             /*< processor id                         */
   int act_flag;              /*< ACT if the create activates the task */
@@ -74,7 +74,7 @@ void  ptask_syserror(char *fun, char *msg);
 /*-----------------------------------------------------------------*/
 void	  wait_for_activation();  /** waits for an exp. activation */
 void	  wait_for_period();      /** waits for next periodic act. */
-void      set_activation(const tspec_t *off); /** sets the act. time */
+void      set_activation(const tspec *off); /** sets the act. time */
 int       get_taskindex();        /** returns the task own index   */
 pthread_t get_threadid(int i);    /** returns the thread own id    */
 int	  deadline_miss(int i);

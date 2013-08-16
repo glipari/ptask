@@ -21,7 +21,7 @@ typedef struct semwmax {
   pthread_cond_t c;
   int nsignals;
   int narrived; 
-  tspec_t max;
+  tspec max;
 } maxsem_t;
 
 typedef struct modegroup {
@@ -40,7 +40,7 @@ void rtmode_changemode(rtmode_t *g, int new_mode_id);
 int  rtmode_taskfind(rtmode_t *g, int id);
 
 void    maxsem_init(maxsem_t *s);
-void    maxsem_post(maxsem_t *gs, tspec_t *t);
-tspec_t maxsem_wait(maxsem_t *gs, int nsignals);
+void    maxsem_post(maxsem_t *gs, tspec *t);
+tspec maxsem_wait(maxsem_t *gs, int nsignals);
 
 #endif

@@ -7,7 +7,7 @@
 
 // Global variables
 pbarrier_t barrier;
-tspec_t offset[NTASKS];
+tspec offset[NTASKS];
 
 //extern struct task_par _tp[MAX_TASKS];
 
@@ -15,7 +15,7 @@ void task_body()
 {
     int i = get_taskindex();
     int k;
-    tspec_t st;
+    tspec st;
 
     printf("[task %d] Init\n", i);
     printf("[task %d] Period: %d\n", i, task_period(i));
@@ -31,7 +31,7 @@ void task_body()
 
     set_activation(&st);
 
-    tspec_t temp = tspec_add_delta(&st, task_period(i), MILLI);
+    tspec temp = tspec_add_delta(&st, task_period(i), MILLI);
     printf("[TASK %d] start_time should be %ld\n", i,
 	   tspec_to_rel(&temp, MILLI));
     

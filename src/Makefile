@@ -16,7 +16,7 @@ $(SHARED_LIB) : $(DOBJ)
 
 -include Makefile.deps
 
-depend:
+depend: 
 	$(CC) $(CFLAGS) -MM *.[ch] > Makefile.deps
 
 .c.o:

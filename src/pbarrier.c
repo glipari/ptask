@@ -12,7 +12,7 @@ void pbarrier_init(pbarrier_t *pb, int nth)
     //clock_gettime(CLOCK_REALTIME, &pb->reference);
 }
 
-tspec_t pbarrier_wait(pbarrier_t *pb, tspec_t *offset)
+tspec pbarrier_wait(pbarrier_t *pb, tspec *offset)
 {
     pthread_mutex_lock(&pb->m);
 
@@ -31,7 +31,7 @@ tspec_t pbarrier_wait(pbarrier_t *pb, tspec_t *offset)
 
     if (offset == 0) return pb->reference;
     else {
-	tspec_t wake_up;
+	tspec wake_up;
 	wake_up = tspec_add(&pb->reference, offset);
 	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wake_up, 0);
 	return wake_up;

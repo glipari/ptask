@@ -11,12 +11,12 @@ struct task_par {
     void * arg;         /* task argument                */
     int  index;		/* task argument		*/
     long wcet;		/* task WCET in microseconds	*/
-    tspec_t period;	/* task period 	                */
-    tspec_t deadline;	/* relative deadline 	        */
+    tspec period;	/* task period 	                */
+    tspec deadline;	/* relative deadline 	        */
     int	 priority;	/* task priority in [0,99]	*/
     int  dmiss;		/* number of deadline miss	*/
-    tspec_t at;		/* next activation time		*/
-    tspec_t dl;		/* current absolute deadline	*/
+    tspec at;		/* next activation time		*/
+    tspec dl;		/* current absolute deadline	*/
     void (*body)(void); /* the actual body of the task  */
     int free;           /* >=0 if this descr is avail.  */
     int act_flag;       /* flag for postponed activ.    */
@@ -51,7 +51,7 @@ static pthread_mutex_t   _tp_mutex; /** this is used to protect the
 
 sem_t		   _tsem[MAX_TASKS];	/* for task_activate	*/
 
-tspec_t       ptask_t0;	                /* system start time	      */
+tspec       ptask_t0;	                /* system start time	      */
 int           ptask_policy;		/* common scheduling policy   */
 global_policy ptask_global;             /* global or partitioned      */
 sem_protocol  ptask_protocol;           /* semaphore protocol         */
@@ -179,7 +179,7 @@ void	wait_for_activation()
     sem_wait(&_tsem[ptask_idx]);
 }
 
-void set_activation(const tspec_t *t)
+void set_activation(const tspec *t)
 {
     _tp[ptask_idx].at = tspec_add(t, &_tp[ptask_idx].period);  
     _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline);  

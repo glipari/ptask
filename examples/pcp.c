@@ -35,7 +35,7 @@
 #define PIP	1		/* Priority Inheritance Protocol	*/
 #define PCP	2		/* Priority Ceiling Protocol		*/
 
-int	ptime[MAX_TASKS];	/* number of cycles	*/
+int	prtime[MAX_TASKS];	/* number of cycles	*/
 int	csa[MAX_TASKS];		/* task periods		*/
 int	csb[MAX_TASKS];		/* task periods		*/
 int	period[MAX_TASKS];	/* task periods		*/
@@ -47,7 +47,7 @@ float	scale = 1.0;		/* time scale		*/
 
 /* mutual esclusion semaphores  */
 pthread_mutex_t		mxa, muxA, muxB;
-pthread_mutexattr_t	matt;
+//pthread_mutexattr_t	matt;
 
 /*--------------------------------------------------------------*/
 /*  Reads task parameters from a configuration file     	*/
@@ -72,7 +72,7 @@ FILE    *fp;
 	do {
 		do {c = getc(fp);} while ((c != ':') && (c != EOF));
 		if (c != EOF) {
-			fscanf(fp, "%d", &ptime[i]);
+			fscanf(fp, "%d", &prtime[i]);
 			fscanf(fp, "%d", &csa[i]);
 			fscanf(fp, "%d", &csb[i]);
 			fscanf(fp, "%d", &period[i]);
@@ -217,7 +217,7 @@ int	dl, at = 0;
 
 		dl = at + task_deadline(i);
 
-		for (k=0; k<ptime[i]; k++) {
+		for (k=0; k<prtime[i]; k++) {
 			t = tspec_gettime(MILLI);
 			x = OFFSET + t/scale;
 			pthread_mutex_lock(&mxa);
@@ -243,7 +243,7 @@ int	dl, at = 0;
 		}
 	/*----------------------------------------------*/
 		if (i != 4) {
-			for (k=0; k<ptime[i]; k++) {
+			for (k=0; k<prtime[i]; k++) {
 				t = tspec_gettime(MILLI);
 				x = OFFSET + t/scale;
 				pthread_mutex_lock(&mxa);
@@ -310,7 +310,7 @@ long	t;
 
 	get_data();
 /*	for (i=1; i<nt; i++) {
-		printf("Task %d: %d, %d, %d, %d\n", i, ptime[i], period[i], dline[i], prio[i]);
+		printf("Task %d: %d, %d, %d, %d\n", i, prtime[i], period[i], dline[i], prio[i]);
 	}
 */
 	init(SCHED_FIFO, PCP);
@@ -335,6 +335,10 @@ long	t;
 			pthread_mutex_unlock(&mxa);
 		}
 	}
+
+	pmux_destroy(&mxa);
+	pmux_destroy(&muxA);
+	pmux_destroy(&muxB);
 
 	allegro_exit();
 
