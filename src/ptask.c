@@ -20,7 +20,6 @@ struct task_par {
     void (*body)(void); /* the actual body of the task  */
     int free;           /* >=0 if this descr is avail.  */
     int act_flag;       /* flag for postponed activ.    */
-  //int wait_flag;      /* flag for implicit waiting    */
     int measure_flag;   /* flag for measurement         */
     rtmode_t *modes;    /* the mode descripton          */
 };
@@ -32,7 +31,6 @@ const task_spec_t TASK_SPEC_DFL = {
   .priority = 1, 
   .processor = 0, 
   .act_flag = ACT, 
-  //.wait_flag = 1,
   .measure = 0,
   .arg = NULL,
   .modes = NULL,
@@ -109,25 +107,25 @@ static void ptask_exit_handler(void *arg)
     release_tp(ptask_idx);
 }
 
-// the thread body. 
+// the thread body.
 // 1) It does some book keeping and installs the
-//    exit handler. 
-// 2) if necessary, waits for the first activation 
+//    exit handler.
+// 2) if necessary, waits for the first activation
 // 3) then calls the real user task body
 // 40 on exit, it cleans up everything
 static void *ptask_std_body(void *arg)
 {
     struct task_par *pdes = (struct task_par *)arg;
     
-    ptask_idx = pdes->index; 
-    if (_tp[ptask_idx].measure_flag) 
+    ptask_idx = pdes->index;
+    if (_tp[ptask_idx].measure_flag)
 	tstat_init(ptask_idx);
 
     pthread_cleanup_push(ptask_exit_handler, 0);
 
-    if (_tp[ptask_idx].act_flag == NOACT) 
+    if (_tp[ptask_idx].act_flag == NOACT)
       wait_for_activation();
-    else 
+    else
       clock_gettime(CLOCK_MONOTONIC, &_tp[ptask_idx].at);
     
     (*pdes->body)();
@@ -154,7 +152,7 @@ void ptask_init(int policy,
     /* initialize all private sem with the value 0	*/
     for (i=0; i<MAX_TASKS; i++) {
 	sem_init(&_tsem[i], 0, 0);
-	if (i == MAX_TASKS-1) 
+	if (i == MAX_TASKS-1)
 	    _tp[i].free = _TP_NOMORE;
 	else _tp[i].free = i+1;
     }
@@ -167,6 +165,143 @@ void ptask_init(int policy,
     // initialize time
     tspec_init();
 }
+
+
+static int __create_internal(void (*task)(void), task_spec_t *tp)
+{
+    pthread_attr_t	myatt;
+    struct	sched_param mypar;
+    int	tret;
+    int j=0;
+    
+    int i = allocate_tp();
+    if (i == _TP_NOMORE) return -1;
+    
+    _tp[i].index = i;
+    _tp[i].wcet = 0;
+    _tp[i].period = tp->period;
+    _tp[i].deadline = tp->rdline;
+    _tp[i].priority = tp->priority;
+    _tp[i].dmiss = 0;
+    _tp[i].body = task;
+    _tp[i].act_flag = tp->act_flag;
+    _tp[i].measure_flag = tp->measure;
+    _tp[i].arg = tp->arg;
+    _tp[i].modes = tp->modes;
+    if (tp->modes != NULL) {
+	for (j=0; j<tp->nmodes; ++j) { 
+	    int result = rtmode_addtask(tp->modes, tp->mode_list[j], i);
+	    if (result == 0) {
+		release_tp(i);
+		return -1;
+	    }
+	}
+    }
+
+    pthread_attr_init(&myatt);
+    if (ptask_policy != SCHED_OTHER)
+	pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
+    pthread_attr_setschedpolicy(&myatt, ptask_policy);
+    mypar.sched_priority = _tp[i].priority;
+    pthread_attr_setschedparam(&myatt, &mypar);
+
+    cpu_set_t cpuset;
+    if (ptask_global == PARTITIONED) {
+      CPU_ZERO(&cpuset);
+      CPU_SET(tp->processor, &cpuset);
+      
+      pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
+    }
+
+    tret = pthread_create(&_tid[i], &myatt, 
+			  ptask_std_body, (void*)(&_tp[i]));
+
+    pthread_attr_destroy(&myatt);
+    
+    if (tret == 0) {
+      //if (tp->act_flag == ACT) task_activate(i);
+      return i;
+    }
+    else {
+      release_tp(i);
+      return -1;
+    }  
+}
+
+int task_create_ex(void (*task)(void), task_spec_t *tp)
+{
+     return __create_internal(task, tp);
+}
+
+
+/*--------------------------------------------------------------*/
+/*  TASK_CREATE: initialize thread parameters and creates a	*/
+/*		 thread						*/
+/*--------------------------------------------------------------*/
+int task_create(
+    void (*task)(void),
+    int	period,
+    int	drel,
+    int	prio,
+    int	aflag)
+{
+    task_spec_t param = TASK_SPEC_DFL;
+    param.period = tspec_from(period, MILLI);
+    param.rdline = tspec_from(drel, MILLI);
+    param.priority = prio;
+    param.act_flag = aflag;
+
+    return __create_internal(task, &param);
+
+    /* pthread_attr_t	myatt; */
+    /* struct	sched_param mypar; */
+    /* int	tret; */
+    /* cpu_set_t cpuset; */
+    
+    /* int i = allocate_tp(); */
+    /* if (i == _TP_NOMORE) return -1; */
+    
+    /* _tp[i].index = i; */
+    /* _tp[i].wcet = 0; */
+    /* _tp[i].period = tspec_from(period, MILLI); */
+    /* _tp[i].deadline = tspec_from(drel, MILLI); */
+    /* _tp[i].priority = prio; */
+    /* _tp[i].dmiss = 0; */
+    /* _tp[i].body = task; */
+    /* _tp[i].act_flag = aflag; */
+    /* //_tp[i].wait_flag = 0; */
+    /* _tp[i].arg = NULL; */
+    /* _tp[i].modes = NULL; */
+
+    /* pthread_attr_init(&myatt); */
+    /* if (ptask_policy != SCHED_OTHER) */
+    /* 	pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED); */
+
+    /* pthread_attr_setschedpolicy(&myatt, ptask_policy); */
+
+    /* mypar.sched_priority = _tp[i].priority; */
+    /* pthread_attr_setschedparam(&myatt, &mypar); */
+
+    /* if (ptask_global == PARTITIONED) { */
+    /*   CPU_ZERO(&cpuset); */
+    /*   CPU_SET(0, &cpuset); */
+    /*   pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset); */
+    /* } */
+
+    /* tret = pthread_create(&_tid[i], &myatt,  */
+    /* 			  ptask_std_body, (void*)(&_tp[i])); */
+    /* pthread_attr_destroy(&myatt); */
+    
+    /* if (tret == 0) { */
+    /*   //if (aflag == ACT) task_activate(i); */
+    /*   return i; */
+    /* } */
+    /* else { */
+    /*   release_tp(i); */
+    /*   return -1; */
+    /* }  */
+}
+
 
 /*--------------------------------------------------------------*/
 /*  WAIT_FOR_ACTIVATION: suspends the calling thread until the	*/
@@ -181,8 +316,8 @@ void	wait_for_activation()
 
 void set_activation(const tspec *t)
 {
-    _tp[ptask_idx].at = tspec_add(t, &_tp[ptask_idx].period);  
-    _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline);  
+    _tp[ptask_idx].at = tspec_add(t, &_tp[ptask_idx].period);
+    _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline);
 }
 
 
@@ -192,25 +327,25 @@ void set_activation(const tspec *t)
 /*--------------------------------------------------------------*/
 void	wait_for_period()
 {
-    if (_tp[ptask_idx].measure_flag) 
+    if (_tp[ptask_idx].measure_flag)
 	tstat_record(ptask_idx);
     
-    if (_tp[ptask_idx].modes != NULL && 
+    if (_tp[ptask_idx].modes != NULL &&
 	!rtmode_taskfind(_tp[ptask_idx].modes, ptask_idx)) {
 	maxsem_post(&_tp[ptask_idx].modes->manager, &_tp[ptask_idx].at);
 	wait_for_activation();
 	return;
     }
     else {
-	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, 
+	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
 			&(_tp[ptask_idx].at), NULL);
 	
 	/* when awaken, update next activation time */
-	_tp[ptask_idx].at = tspec_add(&(_tp[ptask_idx].at), 
+	_tp[ptask_idx].at = tspec_add(&(_tp[ptask_idx].at),
 				      &_tp[ptask_idx].period);
 	
 	/* update absolute deadline */
-	_tp[ptask_idx].dl = tspec_add(&(_tp[ptask_idx].dl), 
+	_tp[ptask_idx].dl = tspec_add(&(_tp[ptask_idx].dl),
 				      &_tp[ptask_idx].period);
 	return;
     }
@@ -336,65 +471,7 @@ int	deadline_miss(int i)
     return 0;
 }
 
-/*--------------------------------------------------------------*/
-/*  TASK_CREATE: initialize thread parameters and creates a	*/
-/*		 thread						*/
-/*--------------------------------------------------------------*/
-int task_create(
-    void (*task)(void),
-    int	period,
-    int	drel,
-    int	prio,
-    int	aflag)
-{
-    pthread_attr_t	myatt;
-    struct	sched_param mypar;
-    int	tret;
-    cpu_set_t cpuset;
-    
-    int i = allocate_tp();
-    if (i == _TP_NOMORE) return -1;
-    
-    _tp[i].index = i;
-    _tp[i].wcet = 0;
-    _tp[i].period = tspec_from(period, MILLI);
-    _tp[i].deadline = tspec_from(drel, MILLI);
-    _tp[i].priority = prio;
-    _tp[i].dmiss = 0;
-    _tp[i].body = task;
-    _tp[i].act_flag = aflag;
-    //_tp[i].wait_flag = 0;
-    _tp[i].arg = NULL;
-    _tp[i].modes = NULL;
 
-    pthread_attr_init(&myatt);
-    if (ptask_policy != SCHED_OTHER)
-	pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
-
-    pthread_attr_setschedpolicy(&myatt, ptask_policy);
-
-    mypar.sched_priority = _tp[i].priority;
-    pthread_attr_setschedparam(&myatt, &mypar);
-
-    if (ptask_global == PARTITIONED) {
-      CPU_ZERO(&cpuset);
-      CPU_SET(0, &cpuset);
-      pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
-    }
-
-    tret = pthread_create(&_tid[i], &myatt, 
-			  ptask_std_body, (void*)(&_tp[i]));
-    pthread_attr_destroy(&myatt);
-    
-    if (tret == 0) {
-      //if (aflag == ACT) task_activate(i);
-      return i;
-    }
-    else {
-      release_tp(i);
-      return -1;
-    } 
-}
 
 /*--------------------------------------------------------------*/
 /*  TASK_ACTIVATE: activate task i				*/
@@ -437,66 +514,7 @@ int ptask_getnumcores()
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-int task_create_ex(void (*task)(void), task_spec_t *tp)
-{
-    pthread_attr_t	myatt;
-    struct	sched_param mypar;
-    int	tret;
-    int j=0;
-    
-    int i = allocate_tp();
-    if (i == _TP_NOMORE) return -1;
-    
-    _tp[i].index = i;
-    _tp[i].wcet = 0;
-    _tp[i].period = tp->period;
-    _tp[i].deadline = tp->rdline;
-    _tp[i].priority = tp->priority;
-    _tp[i].dmiss = 0;
-    _tp[i].body = task;
-    _tp[i].act_flag = tp->act_flag;
-    _tp[i].measure_flag = tp->measure;
-    _tp[i].arg = tp->arg;
-    _tp[i].modes = tp->modes;
-    if (tp->modes != NULL) {
-	for (j=0; j<tp->nmodes; ++j) { 
-	    int result = rtmode_addtask(tp->modes, tp->mode_list[j], i);
-	    if (result == 0) {
-		release_tp(i);
-		return -1;
-	    }
-	}
-    }
 
-    pthread_attr_init(&myatt);
-    if (ptask_policy != SCHED_OTHER)
-	pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
-    pthread_attr_setschedpolicy(&myatt, ptask_policy);
-    mypar.sched_priority = _tp[i].priority;
-    pthread_attr_setschedparam(&myatt, &mypar);
-
-    cpu_set_t cpuset;
-    if (ptask_global == PARTITIONED) {
-      CPU_ZERO(&cpuset);
-      CPU_SET(tp->processor, &cpuset);
-      
-      pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
-    }
-
-    tret = pthread_create(&_tid[i], &myatt, 
-			  ptask_std_body, (void*)(&_tp[i]));
-
-    pthread_attr_destroy(&myatt);
-    
-    if (tret == 0) {
-      //if (tp->act_flag == ACT) task_activate(i);
-      return i;
-    }
-    else {
-      release_tp(i);
-      return -1;
-    }
-}
 
 
 void ptask_syserror(char *f, char *msg)

@@ -28,7 +28,7 @@
    - pt_ 
    - task_ 
    
-** TODO Tipi per il tempo
+** DONE Tipi per il tempo
 
    - ptime è un intero, senza unità 
    - internamente, per massima precisione, tspec 
@@ -42,22 +42,22 @@
    - wait_flag 
 
 *** attivazione 
-   o lo creo senza farlo partire per attivarlo successivamente
-   oppure lo creo facendolo partire immediatamente. 
+    o lo creo senza farlo partire per attivarlo successivamente
+    oppure lo creo facendolo partire immediatamente. 
 
-   ACT  -->    IMMEDIATE   (default)
-   NO_ACT  --> DEFERRED   
+    ACT  -->    IMMEDIATE   (default)
+    NO_ACT  --> DEFERRED   
 
 *** periodico o aperiodico
 
-   unificare la wait_for_period() e la wait_for_activation(), adesso
-   solo la seconda che decide cosa fare a seconda del "tipo" del task
-
+    unificare la wait_for_period() e la wait_for_activation(), adesso
+    solo la seconda che decide cosa fare a seconda del "tipo" del task
+    
    - nella struttura interna, devo avere un campo "tipo". 
    - posso impostare il tipo dinamicamente con una funzione set_type()
    - alla creazione aggiungo un parametro nella funzione
-   
-   int idx = task_create(body, tipo, periodo, priorità, other_params);
+     
+    int idx = task_create(body, tipo, periodo, priorità, other_params);
    
 *** parametri addizionali
 
