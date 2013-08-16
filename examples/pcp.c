@@ -173,8 +173,14 @@ void	init(int policy, int prot)
 	clear_to_color(screen, BGC);
 	install_keyboard();
 	print_grid(policy, prot);
+	
+	if (prot == PIP) ptask_init(policy, GLOBAL, PRIO_INHERITANCE);
+	else if (prot == PCP) ptask_init(policy, GLOBAL, PRIO_CEILING);
+	else {
+	  allegro_exit();
+	  ptask_syserror("pcp.c", "Wrong protocol");
+	}
 
-	ptask_init(policy);
 	if (prot == PIP) { 
 	  pmux_create_pi(&mxa);
 	  pmux_create_pi(&muxA);
@@ -185,24 +191,6 @@ void	init(int policy, int prot)
 	  pmux_create_pc(&muxA, prio[1]);
 	  pmux_create_pc(&muxB, prio[1]);
 	}
-	else {
-	  printf("Error! Protocol not set\n");
-	  allegro_exit();
-	  exit(-1);
-	}
-	/*pthread_mutexattr_init(&matt);
-
-	if (prot == PIP)
-		pthread_mutexattr_setprotocol(&matt, PTHREAD_PRIO_INHERIT);
-
-	if (prot == PCP) {
-		pthread_mutexattr_setprotocol(&matt, PTHREAD_PRIO_PROTECT);
-		pthread_mutexattr_setprioceiling(&matt, prio[1]);
-	}
-
-	pthread_mutex_init(&mxa, &matt);
-	pthread_mutex_init(&muxA, &matt);
-	pthread_mutex_init(&muxB, &matt);*/
 }
 
 /*--------------------------------------------------------------*/

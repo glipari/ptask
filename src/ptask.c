@@ -1,6 +1,8 @@
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "ptask.h"
 #include "pmutex.h"
 #include "tstat.h"
@@ -49,8 +51,10 @@ static pthread_mutex_t   _tp_mutex; /** this is used to protect the
 
 sem_t		   _tsem[MAX_TASKS];	/* for task_activate	*/
 
-tspec_t ptask_t0;	        /* system start time		*/
-int     ptask_policy;		/* common scheduling policy	*/
+tspec_t       ptask_t0;	                /* system start time	      */
+int           ptask_policy;		/* common scheduling policy   */
+global_policy ptask_global;             /* global or partitioned      */
+sem_protocol  ptask_protocol;           /* semaphore protocol         */
 
 /**
    This function returns a free descriptor, or -1 if there are no more
@@ -137,11 +141,15 @@ static void *ptask_std_body(void *arg)
 /*  PTASK_INIT: initialize some PTASK variables			*/
 /*--------------------------------------------------------------*/
 
-void ptask_init(int policy)
+void ptask_init(int policy,
+		global_policy global,
+		sem_protocol protocol)
 {
     int	i;
 
     ptask_policy = policy;
+    ptask_global = global;
+    ptask_protocol = protocol;
 
     /* initialize all private sem with the value 0	*/
     for (i=0; i<MAX_TASKS; i++) {
@@ -151,7 +159,10 @@ void ptask_init(int policy)
 	else _tp[i].free = i+1;
     }
     first_free = 0;
-    pmux_create_pc(&_tp_mutex, 99);
+    if (ptask_protocol == PRIO_INHERITANCE) pmux_create_pi(&_tp_mutex);
+    else if (ptask_protocol == PRIO_CEILING) pmux_create_pc(&_tp_mutex, 99);
+    else if (ptask_protocol == NO_PROTOCOL) pthread_mutex_init(&_tp_mutex, 0);
+    else ptask_syserror("ptask_init()", "Semaphore protocol not supported");
 
     // initialize time
     tspec_init();
@@ -164,7 +175,6 @@ void ptask_init(int policy)
 /*--------------------------------------------------------------*/
 void	wait_for_activation()
 {
-
     /* suspend on a private semaphore */
     sem_wait(&_tsem[ptask_idx]);
 }
@@ -192,7 +202,6 @@ void	wait_for_period()
 	return;
     }
     else {
-	
 	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, 
 			&(_tp[ptask_idx].at), NULL);
 	
@@ -341,6 +350,7 @@ int task_create(
     pthread_attr_t	myatt;
     struct	sched_param mypar;
     int	tret;
+    cpu_set_t cpuset;
     
     int i = allocate_tp();
     if (i == _TP_NOMORE) return -1;
@@ -360,16 +370,21 @@ int task_create(
     pthread_attr_init(&myatt);
     if (ptask_policy != SCHED_OTHER)
 	pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
+
     pthread_attr_setschedpolicy(&myatt, ptask_policy);
+
     mypar.sched_priority = _tp[i].priority;
     pthread_attr_setschedparam(&myatt, &mypar);
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(0, &cpuset);
-    pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
+
+    if (ptask_global == PARTITIONED) {
+      CPU_ZERO(&cpuset);
+      CPU_SET(0, &cpuset);
+      pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
+    }
 
     tret = pthread_create(&_tid[i], &myatt, 
 			  ptask_std_body, (void*)(&_tp[i]));
+    pthread_attr_destroy(&myatt);
     
     if (tret == 0) {
       if (aflag == ACT) task_activate(i);
@@ -483,3 +498,10 @@ int task_create_ex(void (*task)(void), task_spec_t *tp)
     }
 }
 
+
+void ptask_syserror(char *f, char *msg)
+{
+  fprintf(stderr, "%s: ", f);
+  fprintf(stderr, "%s \n", msg);
+  exit(-1);
+}

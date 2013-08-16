@@ -20,7 +20,7 @@ int main()
     task_spec_t param;
     int res;
 
-    ptask_init(SCHED_FIFO);
+    ptask_init(SCHED_FIFO, GLOBAL, PRIO_INHERITANCE);
     
     res = rtmode_init(&mymodes, 3);
     if (res < 0) {

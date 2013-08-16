@@ -1,0 +1,9 @@
+* Version 0.2 beta
+  Changes with respect to version 0.1
+
+** New ptask_init()
+   Now ptask_init() takes three parameters: the scheduling policy
+   (SCHED_FIFO, SCHED_RR or SCHED_OTHER), the global flag (PARTITIONED
+   or GLOBAL), and the semaphore protocol (PRIO_INHERITANCE or PRIO_CEILING).
+
+

@@ -19,10 +19,12 @@
 #define	NOACT		0
 #define	ACT		1
 
+typedef enum {PARTITIONED, GLOBAL} global_policy;
+typedef enum {PRIO_INHERITANCE, PRIO_CEILING, NO_PROTOCOL} sem_protocol;
 
 /**
    This structure is used to simplify the creation of a task by
-   setting standard arguments, 
+   setting standard arguments
  */
 typedef struct _tst {
   tspec_t period; 
@@ -42,11 +44,30 @@ typedef struct _tst {
 
 extern const task_spec_t TASK_SPEC_DFL;
 
-/* ------------------------------------------------------------- */
-/*                     GLOBAL FUNCTIONS                          */
-/* ------------------------------------------------------------- */
-int     ptask_getnumcores(); /* returns number of available cores*/ 
-void	ptask_init(int policy); /** Initializes the library      */
+/* ------------------------------------------------------------------ */
+/*                     GLOBAL FUNCTIONS                               */
+/* ------------------------------------------------------------------ */
+int  ptask_getnumcores(); /* returns the number of available cores    */
+
+/** The following function initializes the library. The policy can be:
+    - SCHED_FIFO      fixed priority, fifo for same priority tasks
+    - SCHED_RR        fixed priority, round robin for same priority tasks 
+    - SCHED_OTHER     classical Linux scheduling policy (background) 
+    
+    The global policy can be:
+    - GLOBAL          global scheduling with migration
+    - PARTITIONED     partitioned scheduling (no migration)
+
+    The semaphore protocol can be:
+    - PRIO_INHERIT
+    - PRIO_CEILING
+*/ 
+void  ptask_init(int policy,
+		 global_policy global, 
+		 sem_protocol protocol); 
+
+
+void  ptask_syserror(char *fun, char *msg);
 
 /*-----------------------------------------------------------------*/
 /*			TASK FUNCTIONS                             */

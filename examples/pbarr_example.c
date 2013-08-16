@@ -49,7 +49,7 @@ int main()
 {
     int i;
     int ret;
-    ptask_init(SCHED_FIFO);
+    ptask_init(SCHED_FIFO, GLOBAL, PRIO_INHERITANCE);
     pbarrier_init(&barrier, NTASKS+1);
   
     for (i=0; i<NTASKS; i++) 

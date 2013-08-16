@@ -54,7 +54,7 @@ void init()
 	pmux_create_pi(&mxa);
 	pmux_create_pi(&mxv);
 
-	ptask_init(SCHED_FIFO);
+	ptask_init(SCHED_FIFO, PARTITIONED, PRIO_INHERITANCE);
 }
 
 /*--------------------------------------------------------------*/
