@@ -29,27 +29,27 @@ void tstat_record(int i)
     measures[i].num_instances++;
 }
 
-tspec tstat_getwcet(i)
+tspec ptask_get_wcet(i)
 {
     return measures[i].wcet;
 }
 
-tspec tstat_getavg(i) 
+tspec ptask_get_avg(i) 
 {
     tspec res;
-    tspec diff = tstat_gettotal(i);
+    tspec diff = ptask_get_total(i);
     res.tv_sec = diff.tv_sec / measures[i].num_instances;
     diff.tv_nsec += (diff.tv_sec % measures[i].num_instances) * 1000000000L;
     res.tv_nsec = diff.tv_nsec / measures[i].num_instances;
     return res;
 }
 
-int tstat_getnuminstances(i)
+int ptask_get_numinstances(i)
 {
     return measures[i].num_instances;
 }
 
-tspec tstat_gettotal(i)
+tspec ptask_get_total(i)
 {
     return tspec_sub(&measures[i].last, &measures[i].first);
 }

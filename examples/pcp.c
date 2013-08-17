@@ -206,7 +206,7 @@ int	i, k;
 int	lev1, lev2, col;
 int	dl, at = 0;
 
-        i = get_taskindex();
+        i = ptask_get_index();
 
 	lev1 = LEV0 + DLEV*i - 2;
 	lev2 = LEV0 + DLEV*i - 2 - DEX;
@@ -218,12 +218,12 @@ int	dl, at = 0;
 		dl = at + task_deadline(i);
 
 		for (k=0; k<prtime[i]; k++) {
-			t = tspec_gettime(MILLI);
+			t = ptask_gettime(MILLI);
 			x = OFFSET + t/scale;
 			pthread_mutex_lock(&mxa);
 			line(screen, x, lev1, x, lev2, col);
 			pthread_mutex_unlock(&mxa);
-			while (tspec_gettime(MILLI) == t);
+			while (ptask_gettime(MILLI) == t);
 		}
 
 	/*----------------------------------------------*/
@@ -232,24 +232,24 @@ int	dl, at = 0;
 		if ((i != 2) && (i != 4)) {
 			pthread_mutex_lock(&muxA);
 			for (k=0; k<csa[i]; k++) {
-				t = tspec_gettime(MILLI);
+				t = ptask_gettime(MILLI);
 				x = OFFSET + t/scale;
 				pthread_mutex_lock(&mxa);
 				line(screen, x, lev1-1, x, lev2+1, CSCOLA);
 				pthread_mutex_unlock(&mxa);
-				while (tspec_gettime(MILLI) == t);
+				while (ptask_gettime(MILLI) == t);
 			}
 			pthread_mutex_unlock(&muxA);
 		}
 	/*----------------------------------------------*/
 		if (i != 4) {
 			for (k=0; k<prtime[i]; k++) {
-				t = tspec_gettime(MILLI);
+				t = ptask_gettime(MILLI);
 				x = OFFSET + t/scale;
 				pthread_mutex_lock(&mxa);
 				line(screen, x, lev1, x, lev2, col);
 				pthread_mutex_unlock(&mxa);
-				while (tspec_gettime(MILLI) == t);
+				while (ptask_gettime(MILLI) == t);
 			}
 		}
 	/*----------------------------------------------*/
@@ -258,12 +258,12 @@ int	dl, at = 0;
 		if (i != 2) {
 			pthread_mutex_lock(&muxB);
 			for (k=0; k<csb[i]; k++) {
-				t = tspec_gettime(MILLI);
+				t = ptask_gettime(MILLI);
 				x = OFFSET + t/scale;
 				pthread_mutex_lock(&mxa);
 				line(screen, x, lev1-1, x, lev2+1, CSCOLB);
 				pthread_mutex_unlock(&mxa);
-				while (tspec_gettime(MILLI) == t);
+				while (ptask_gettime(MILLI) == t);
 			}
 			pthread_mutex_unlock(&muxB);
 		}
@@ -274,7 +274,7 @@ int	dl, at = 0;
 			textout_ex(screen, font, s, OFFSET+dl/scale-4, lev1+8, 7, 0);
 		}
 
-		wait_for_instance();
+		ptask_wait_for_instance();
 		at = at + task_period(i);
 	}
 }
@@ -288,11 +288,11 @@ void	gen()
   int	i, j; 
 
 	for (i=1; i<nt; i++) {
-		j = ptask_create(task, period[i], dline[i], prio[i], NOACT);
+	  j = ptask_create(task, PERIODIC, period[i], prio[i], DEFERRED);
 	}
 
 	for (i=1; i<nt; i++) {
-		task_activate(i);
+		ptask_activate(i);
 	}
 }
 
@@ -318,7 +318,11 @@ long	t;
 	lev1 = LEV0 - 2;
 	lev2 = LEV0 - 2 - DEX;
 
-	ptask_create(gen, 100, 100, 30, ACT);
+	int gen_id = ptask_create(gen, PERIODIC, 100, 30, NOW);
+	if (gen_id < 0) {
+	    printf("Could not create task gen\n");
+	    exit(-1);
+	}
 
 	while (key != KEY_ESC) {
 
@@ -328,7 +332,7 @@ long	t;
 		}
 
 		if (x < 640L) {
-			t = tspec_gettime(MILLI);
+			t = ptask_gettime(MILLI);
 			x = OFFSET + t/scale;
 			pthread_mutex_lock(&mxa);
 			line(screen, x, lev1, x, lev2, MAINCOL);

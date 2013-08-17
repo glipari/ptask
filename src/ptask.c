@@ -31,7 +31,7 @@ const task_spec_t TASK_SPEC_DFL = {
     .rdline = {1, 0},
     .priority = 1, 
     .processor = 0, 
-    .act_flag = ACT, 
+    .act_flag = NOW, 
     .measure_flag = 0,
     .arg = NULL,
     .modes = NULL,
@@ -99,7 +99,7 @@ static __thread int ptask_idx;
 
 // this is to be called from the thread and returns the 
 // current index
-int get_taskindex() 
+int ptask_get_index() 
 {
     return ptask_idx;
 }
@@ -126,8 +126,8 @@ static void *ptask_std_body(void *arg)
 
     pthread_cleanup_push(ptask_exit_handler, 0);
 
-    if (_tp[ptask_idx].act_flag == NOACT)
-      wait_for_activation();
+    if (_tp[ptask_idx].act_flag == DEFERRED)
+	ptask_wait_for_activation();
     else
       clock_gettime(CLOCK_MONOTONIC, &_tp[ptask_idx].at);
     
@@ -181,23 +181,36 @@ static int __create_internal(void (*task)(void), task_spec_t *tp)
     int i = allocate_tp();
     if (i == _TP_NOMORE) return -1;
     
-    _tp[i].type = tp->type;
     _tp[i].index = i;
-    _tp[i].period = tp->period;
-    _tp[i].deadline = tp->rdline;
-    _tp[i].priority = tp->priority;
-    _tp[i].dmiss = 0;
     _tp[i].body = task;
-    _tp[i].act_flag = tp->act_flag;
-    _tp[i].measure_flag = tp->measure_flag;
-    _tp[i].arg = tp->arg;
-    _tp[i].modes = tp->modes;
-    if (tp->modes != NULL) {
-	for (j=0; j<tp->nmodes; ++j) { 
-	    int result = rtmode_addtask(tp->modes, tp->mode_list[j], i);
-	    if (result == 0) {
-		release_tp(i);
-		return -1;
+    _tp[i].dmiss = 0;
+
+    if (tp == NULL) {
+	_tp[i].type = APERIODIC;
+	_tp[i].period = tspec_from(1, SEC);
+	_tp[i].deadline = tspec_from(1, SEC);
+	_tp[i].priority = 1;
+	_tp[i].act_flag = DEFERRED;
+	_tp[i].measure_flag = 0;
+	_tp[i].arg = 0;
+	_tp[i].modes = NULL;
+    }
+    else {
+	_tp[i].type = tp->type;
+	_tp[i].period = tp->period;
+	_tp[i].deadline = tp->rdline;
+	_tp[i].priority = tp->priority;
+	_tp[i].act_flag = tp->act_flag;
+	_tp[i].measure_flag = tp->measure_flag;
+	_tp[i].arg = tp->arg;
+	_tp[i].modes = tp->modes;
+	if (tp->modes != NULL) {
+	    for (j=0; j<tp->nmodes; ++j) { 
+		int result = rtmode_addtask(tp->modes, tp->mode_list[j], i);
+		if (result == 0) {
+		    release_tp(i);
+		    return -1;
+		}
 	    }
 	}
     }
@@ -223,7 +236,7 @@ static int __create_internal(void (*task)(void), task_spec_t *tp)
     pthread_attr_destroy(&myatt);
     
     if (tret == 0) {
-      //if (tp->act_flag == ACT) task_activate(i);
+      //if (tp->act_flag == ACT) ptask_activate(i);
       return i;
     }
     else {
@@ -244,15 +257,16 @@ int ptask_create_ex(void (*task)(void), task_spec_t *tp)
 /*--------------------------------------------------------------*/
 int ptask_create(
     void (*task)(void),
+    ptask_type type, 
     int	period,
-    int	drel,
     int	prio,
     int	aflag)
 {
     task_spec_t param = TASK_SPEC_DFL;
     param.period = tspec_from(period, MILLI);
-    param.rdline = tspec_from(drel, MILLI);
+    param.rdline = tspec_from(period, MILLI);
     param.priority = prio;
+    param.type = type;
     param.act_flag = aflag;
 
     return __create_internal(task, &param);
@@ -267,7 +281,7 @@ static void __wait_for_period()
     if (_tp[ptask_idx].modes != NULL &&
 	!rtmode_taskfind(_tp[ptask_idx].modes, ptask_idx)) {
 	maxsem_post(&_tp[ptask_idx].modes->manager, &_tp[ptask_idx].at);
-	wait_for_activation();
+	ptask_wait_for_activation();
 	return;
     }
     else {
@@ -290,16 +304,16 @@ static void __wait_for_period()
 /*		     	 task_activation function is called	*/
 /*		     	 and computes the next activation time	*/
 /*--------------------------------------------------------------*/
-void  wait_for_activation()
+void  ptask_wait_for_activation()
 {
     /* suspend on a private semaphore */
     sem_wait(&_tsem[ptask_idx]);
 }
 
-void wait_for_instance()
+void ptask_wait_for_instance()
 {
     if (_tp[ptask_idx].type == PERIODIC) __wait_for_period();
-    else if (_tp[ptask_idx].type == APERIODIC) wait_for_activation();
+    else if (_tp[ptask_idx].type == APERIODIC) ptask_wait_for_activation();
     else ptask_syserror("wait_for_instance()", "wrong type");
 }
  
@@ -415,7 +429,7 @@ int	deadline_miss(int i)
 /*  TASK_ACTIVATE: activate task i				*/
 /*--------------------------------------------------------------*/
 
-void	task_activate(int i)
+void	ptask_activate(int i)
 {
     struct timespec t;
     

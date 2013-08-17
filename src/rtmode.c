@@ -44,7 +44,7 @@ static void mode_manager()
     tspec wakeup;
 
     while(1) {
-	wait_for_activation();
+	ptask_wait_for_activation();
 	int newmode = g->queue[g->tail++];
 	// first step: count which tasks to block and 
 	// which tasks to activate
@@ -70,7 +70,7 @@ static void mode_manager()
 	}
 	// all old tasks are now blocked, now activate all new tasks
 	for (i=0; i<towake.ntasks; ++i) 
-	    task_activate(towake.task_list[i]);
+	    ptask_activate(towake.task_list[i]);
 	// all finished! we can sleep again 
     }
 }
@@ -106,7 +106,7 @@ int  rtmode_addtask(rtmode_t *g, int modeid, int tid)
 void rtmode_changemode(rtmode_t *g, int new_mode_id)
 {
     g->queue[g->head++] = new_mode_id;
-    task_activate(g->manager_id);
+    ptask_activate(g->manager_id);
 }
 
 

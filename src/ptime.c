@@ -85,7 +85,7 @@ tspec tspec_from_rel(long tu, int unit)
 /*  GET_TIME_MS:	return the number of time units		*/
 /*			since system start time			*/
 /*--------------------------------------------------------------*/
-long	tspec_gettime(int unit)
+long	ptask_gettime(int unit)
 {
     tspec t;
 

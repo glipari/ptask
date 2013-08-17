@@ -7,10 +7,10 @@
 
 void taskbody()
 {
-    wait_for_activation();
+    ptask_wait_for_activation();
     while (1) {
-	printf("Task T%d is running\n", get_taskindex());
-	wait_for_instance();
+	printf("Task T%d is running\n", ptask_get_index());
+	ptask_wait_for_instance();
     }
 }
 

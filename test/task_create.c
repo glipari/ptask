@@ -3,10 +3,10 @@
 
 void mytask()
 {
-  int k, i = get_taskindex();
+  int k, i = ptask_get_index();
   for (k=0; k<3; ++k) {
     printf("Task %d arrived with period %d\n", i, task_period(i));
-    wait_for_instance();
+    ptask_wait_for_instance();
   }
 }
 
@@ -24,7 +24,7 @@ int main()
     .period=tspec_from(1, SEC), 
     .rdline=tspec_from(1, SEC),
     .priority = 1, .processor = 1,
-    .act_flag = ACT
+    .act_flag = NOW
   };
 
   printf("After setting the parameters: act_flag = %d\n",
@@ -52,7 +52,7 @@ int main()
   sleep(2);
 
   printf("Now activating\n");
-  task_activate(index);
+  ptask_activate(index);
 
   pthread_join(get_threadid(index), 0);
   

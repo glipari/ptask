@@ -16,8 +16,8 @@
 #define	MAX_GROUPS	10
 
 /* activation flag for task_create */
-#define	NOACT		0
-#define	ACT		1
+#define	DEFERRED	0
+#define	NOW		1
 
 typedef enum {PARTITIONED, GLOBAL} global_policy;
 typedef enum {PRIO_INHERITANCE, PRIO_CEILING, NO_PROTOCOL} sem_protocol;
@@ -33,7 +33,7 @@ typedef struct {
     tspec rdline;
     int priority;              /*< from 0 to 99                         */
     int processor;             /*< processor id                         */
-    int act_flag;              /*< ACT if the create activates the task */
+    int act_flag;              /*< NOW if the create activates the task */
     
     int measure_flag;          /*< if 1, activates measure of exec time */
     void *arg;                 /*< pointer to a task argument           */
@@ -75,25 +75,26 @@ void  ptask_syserror(char *fun, char *msg);
 /*--------------------------------------------------------------------- */
 /*			TASK CREATION                                   */
 /*----------------------------------------------------------------------*/
-int  ptask_create(void (*task)(void), 
-		  int period, int drel, int prio, int aflag);
+int  ptask_create(void (*task)(void),
+		  ptask_type type,
+		  int period, int prio, int aflag);
 
 int   ptask_create_ex(void (*task)(void), task_spec_t *tp);
 
 /*-------------------------------------------------------------------------- */
 /*			TASK FUNCTIONS                                       */
 /*---------------------------------------------------------------------------*/
-void      wait_for_instance(); /** waits for next act, periodic or aperiodic */
-void	  wait_for_activation();  /** waits for an exp. activation           */
-//void	  wait_for_period();      /** waits for next periodic act.           */
-int       migrate_to(int core_id); /** migrate task to processor core_id     */
-int       get_taskindex();        /** returns the task own index             */
+void      ptask_wait_for_instance(); /** waits for next period or activation */
+void	  ptask_wait_for_activation(); /** waits for an exp. activation      */
+int       ptask_migrate_to(int core_id); /** migrate task to processor       */
+int       ptask_get_index();        /** returns the task own index           */
 
 void      set_activation(const tspec *off); /** sets the act. time           */
 
 /* Global functions on tasks */
+void	  ptask_activate(int i); /** activates the task of idx i              */
 
-void	  task_activate(int i); /** activates the task of idx i              */
+
 pthread_t get_threadid(int i);    /** returns the thread own id              */
 int	  deadline_miss(int i);
 

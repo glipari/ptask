@@ -9,7 +9,7 @@ int main()
 
     tspec_init();
 
-    delta1 = tspec_gettime(MICRO);
+    delta1 = ptask_gettime(MICRO);
 
     t1 = tspec_from(delta1, MICRO);
     
@@ -31,7 +31,7 @@ int main()
     t2 = tspec_add_delta(&t2, 1, MICRO);    
     assert(tspec_cmp(&t1, &t2) == -1);
 
-    delta2 = tspec_gettime(NANO);
+    delta2 = ptask_gettime(NANO);
 
     // test conversion
     t1 = tspec_get_ref();
@@ -51,7 +51,7 @@ int main()
     assert(delta3 == 1000000000l);
 
     // test that time progresses
-    delta3 = tspec_gettime(NANO);
+    delta3 = ptask_gettime(NANO);
     assert(delta3 > delta2);
 
     // test the subtraction

@@ -13,7 +13,7 @@ tspec offset[NTASKS];
 
 void task_body()
 {
-    int i = get_taskindex();
+    int i = ptask_get_index();
     int k;
     tspec st;
 
@@ -37,10 +37,10 @@ void task_body()
     
 
     while (1) {
-	long now = tspec_gettime(MILLI); 
+	long now = ptask_gettime(MILLI); 
 	printf("[TASK %d] Starting Cycle at time %ld\n", i, now);
 	for (k=0; k<1000000; ++k);
-	wait_for_instance();
+	ptask_wait_for_instance();
     }
 }
 
@@ -57,10 +57,10 @@ int main()
 
     for (i=0; i<NTASKS; i++) {
 	ret = ptask_create(task_body, 
+			   PERIODIC,
 			   (i+1)*1000, 
-			   (i+1)*1000, 
-			  NTASKS + 1 - i, 
-			  ACT);
+			   NTASKS + 1 - i, 
+			   NOW);
 	printf("ret = %d \n", ret);
     }
   

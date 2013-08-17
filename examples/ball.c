@@ -81,7 +81,7 @@ float	dt;		/* incremento temporale     */
 double	a;		/* variabile di appoggio    */
 long	j, k;
 
-        i = get_taskindex();
+        i = ptask_get_index();
 	col = 2 + i%14;
 	y = oy = (TOP-L);
 	x = ox = x0 = XMIN;
@@ -136,7 +136,7 @@ long	j, k;
 			rectfill(screen, 400, 50, 450, 70, dcol);
 			pthread_mutex_unlock(&mxa);
 		}
-		wait_for_instance();
+		ptask_wait_for_instance();
 	}
 }
 
@@ -180,12 +180,12 @@ int	main(void)
 	    params.rdline = tspec_from(DREL, MILLI);
 	    params.priority = PRIO-i;
 	    params.measure_flag = 1;
-	    params.act_flag = ACT;
+	    params.act_flag = NOW;
 	    /* a round robin assignment */
 	    params.processor = last_proc++;
 	    if (last_proc >= max_proc) last_proc = 0;
 
-	    /** i = task_create(palla, PER, DREL, PRIO-i, ACT); */
+	    /** i = task_create(palla, PER, DREL, PRIO-i, NOW); */
 	    i = ptask_create_ex(palla, &params);
 	    if (i != -1) {
 		printf("Task %d created and activated\n", i);
