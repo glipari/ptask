@@ -40,7 +40,7 @@ void task_body()
 	long now = tspec_gettime(MILLI); 
 	printf("[TASK %d] Starting Cycle at time %ld\n", i, now);
 	for (k=0; k<1000000; ++k);
-	wait_for_period();
+	wait_for_instance();
     }
 }
 

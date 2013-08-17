@@ -10,7 +10,7 @@ void taskbody()
     wait_for_activation();
     while (1) {
 	printf("Task T%d is running\n", get_taskindex());
-	wait_for_period();
+	wait_for_instance();
     }
 }
 

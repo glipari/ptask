@@ -6,7 +6,7 @@ LD=gcc
 .SUFFIXES:
 .SUFFIXES: .o .c
 
-EXECS = time key key_opt test_cores task_create
+EXECS = time key key_opt test_cores task_create task_aperiodic
 
 SRCS_time = time.c 
 OBJS_time = ${SRCS_time:.c=.o}
@@ -22,6 +22,9 @@ OBJS_test_cores = ${SRCS_test_cores:.c=.o}
 
 SRCS_task_create = task_create.c 
 OBJS_task_create = ${SRCS_task_create:.c=.o}
+
+SRCS_task_aperiodic = task_aperiodic.c 
+OBJS_task_aperiodic = ${SRCS_task_aperiodic:.c=.o}
 
 all: $(EXECS)
 
@@ -46,6 +49,9 @@ test_cores: $(OBJS_test_cores) ../src/libptask.a
 	$(LD) -o $@ $^ $(LDFLAGS) 
 
 task_create: $(OBJS_task_create) ../src/libptask.a
+	$(LD) -o $@ $^ $(LDFLAGS) 
+
+task_aperiodic: $(OBJS_task_aperiodic) ../src/libptask.a
 	$(LD) -o $@ $^ $(LDFLAGS) 
 
 clean:

@@ -14,3 +14,4 @@ test ./key
 test ./key_opt
 test ./test_cores
 test ./task_create
+test ./task_aperiodic

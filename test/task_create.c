@@ -6,7 +6,7 @@ void mytask()
   int k, i = get_taskindex();
   for (k=0; k<3; ++k) {
     printf("Task %d arrived with period %d\n", i, task_period(i));
-    wait_for_period();
+    wait_for_instance();
   }
 }
 

@@ -8,6 +8,7 @@
 #include "tstat.h"
 
 struct task_par {
+    ptask_type type;    /* periodic or aperiodic        */
     void * arg;         /* task argument                */
     int  index;		/* task argument		*/
     long wcet;		/* task WCET in microseconds	*/
@@ -26,20 +27,22 @@ struct task_par {
 
 
 const task_spec_t TASK_SPEC_DFL = {
-  .period = {1, 0},  
-  .rdline = {1, 0},
-  .priority = 1, 
-  .processor = 0, 
-  .act_flag = ACT, 
-  .measure = 0,
-  .arg = NULL,
-  .modes = NULL,
-  .nmodes = 0
+    .type = PERIODIC,
+    .period = {1, 0},  
+    .rdline = {1, 0},
+    .priority = 1, 
+    .processor = 0, 
+    .act_flag = ACT, 
+    .measure = 0,
+    .arg = NULL,
+    .modes = NULL,
+    .nmodes = 0
 };
 
-pthread_t	         _tid[MAX_TASKS];
-struct task_par	         _tp[MAX_TASKS];
-int                      first_free;
+
+       pthread_t	 _tid[MAX_TASKS];
+       struct task_par	 _tp[MAX_TASKS];
+static int               first_free;
 static pthread_mutex_t   _tp_mutex; /** this is used to protect the 
 					_tp data structure from concurrent
 					accesses from the main and the 
@@ -47,9 +50,8 @@ static pthread_mutex_t   _tp_mutex; /** this is used to protect the
 #define _TP_BUSY    -2
 #define _TP_NOMORE  -1
 
-sem_t		   _tsem[MAX_TASKS];	/* for task_activate	*/
-
-tspec       ptask_t0;	                /* system start time	      */
+sem_t         _tsem[MAX_TASKS];	        /* for task_activate	      */
+tspec         ptask_t0;	                /* system start time	      */
 int           ptask_policy;		/* common scheduling policy   */
 global_policy ptask_global;             /* global or partitioned      */
 sem_protocol  ptask_protocol;           /* semaphore protocol         */
@@ -177,6 +179,7 @@ static int __create_internal(void (*task)(void), task_spec_t *tp)
     int i = allocate_tp();
     if (i == _TP_NOMORE) return -1;
     
+    _tp[i].type = tp->type;
     _tp[i].index = i;
     _tp[i].wcet = 0;
     _tp[i].period = tp->period;
@@ -304,28 +307,10 @@ int task_create(
 
 
 /*--------------------------------------------------------------*/
-/*  WAIT_FOR_ACTIVATION: suspends the calling thread until the	*/
-/*		     	 task_activation function is called	*/
-/*		     	 and computes the next activation time	*/
-/*--------------------------------------------------------------*/
-void	wait_for_activation()
-{
-    /* suspend on a private semaphore */
-    sem_wait(&_tsem[ptask_idx]);
-}
-
-void set_activation(const tspec *t)
-{
-    _tp[ptask_idx].at = tspec_add(t, &_tp[ptask_idx].period);
-    _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline);
-}
-
-
-/*--------------------------------------------------------------*/
 /*  WAIT_FOR_PERIOD: suspends the calling thread until the next	*/
 /*		     activation and sets next activation time	*/
 /*--------------------------------------------------------------*/
-void	wait_for_period()
+static void __wait_for_period()
 {
     if (_tp[ptask_idx].measure_flag)
 	tstat_record(ptask_idx);
@@ -349,6 +334,30 @@ void	wait_for_period()
 				      &_tp[ptask_idx].period);
 	return;
     }
+}
+
+/*--------------------------------------------------------------*/
+/*  WAIT_FOR_ACTIVATION: suspends the calling thread until the	*/
+/*		     	 task_activation function is called	*/
+/*		     	 and computes the next activation time	*/
+/*--------------------------------------------------------------*/
+void  wait_for_activation()
+{
+    /* suspend on a private semaphore */
+    sem_wait(&_tsem[ptask_idx]);
+}
+
+void set_activation(const tspec *t)
+{
+    _tp[ptask_idx].at = tspec_add(t, &_tp[ptask_idx].period);
+    _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline);
+}
+
+void wait_for_instance()
+{
+    if (_tp[ptask_idx].type == PERIODIC) __wait_for_period();
+    else if (_tp[ptask_idx].type == APERIODIC) wait_for_activation();
+    else ptask_syserror("wait_for_instance()", "wrong type");
 }
  
 /*--------------------------------------------------------------*/
@@ -513,8 +522,6 @@ int ptask_getnumcores()
 {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
-
-
 
 
 void ptask_syserror(char *f, char *msg)

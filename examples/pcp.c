@@ -274,7 +274,7 @@ int	dl, at = 0;
 			textout_ex(screen, font, s, OFFSET+dl/scale-4, lev1+8, 7, 0);
 		}
 
-		wait_for_period();
+		wait_for_instance();
 		at = at + task_period(i);
 	}
 }

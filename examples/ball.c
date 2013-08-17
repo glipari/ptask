@@ -136,7 +136,7 @@ long	j, k;
 			rectfill(screen, 400, 50, 450, 70, dcol);
 			pthread_mutex_unlock(&mxa);
 		}
-		wait_for_period();
+		wait_for_instance();
 	}
 }
 
@@ -175,6 +175,7 @@ int	main(void)
 
 	if ((ntasks < MAX_TASKS) && (k == KEY_SPACE)) {
 	    task_spec_t params = TASK_SPEC_DFL;
+	    params.type = PERIODIC;
 	    params.period = tspec_from(PER, MILLI);
 	    params.rdline = tspec_from(DREL, MILLI);
 	    params.priority = PRIO-i;

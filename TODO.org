@@ -1,4 +1,4 @@
-* Things to be done
+* Things to be done in the interface
 
 ** DONE Si possono mischiare PI e PC?
    secondo noi no, succede casino. 
@@ -35,20 +35,20 @@
 
 ** TODO parametri di creazione del task
   
-*** Rimuovere:
+*** TODO Rimuovere:
 
    - period
    - priority
    - wait_flag 
 
-*** attivazione 
+*** DONE attivazione 
     o lo creo senza farlo partire per attivarlo successivamente
     oppure lo creo facendolo partire immediatamente. 
 
     ACT  -->    IMMEDIATE   (default)
     NO_ACT  --> DEFERRED   
 
-*** periodico o aperiodico
+*** TODO periodico o aperiodico
 
     unificare la wait_for_period() e la wait_for_activation(), adesso
     solo la seconda che decide cosa fare a seconda del "tipo" del task
@@ -59,26 +59,26 @@
      
     int idx = task_create(body, tipo, periodo, priorità, other_params);
    
-*** parametri addizionali
+*** TODO parametri addizionali
 
-   seguire pthread, fare funzioni addizionali per cambiare i parametri
-   esempio:
+    seguire pthread, fare funzioni addizionali per cambiare i parametri
+    esempio:
     
-   pt_init_rdline(p, rd);  
+    pt_init_rdline(p, rd);  
 
-   per i flag, aggiungere _flag in fondo al nome
+    per i flag, aggiungere _flag in fondo al nome
  
-*** parametri dinamici
+*** TODO parametri dinamici
 
-   alcuni parametri si possono cambiare: 
+    alcuni parametri si possono cambiare: 
 
-   void pt_set_period(taskid, val);
-   void pt_set_priority(taskid, val);
+    void pt_set_period(taskid, val);
+    void pt_set_priority(taskid, val);
 
-   e funzioni per ritornare il valore attuale
+    e funzioni per ritornare il valore attuale
   
-   int pt_get_period(taskid);
-   int pt_get_priority(taskid);
+    int pt_get_period(taskid);
+    int pt_get_priority(taskid);
 
 ** TODO struttura interna
 
@@ -98,10 +98,20 @@
 
 ** TODO aperiodico che parte ad un certo istante preciso. 
 
-  ptask_activate_at(taskid, abstime); 
+   ptask_activate_at(taskid, abstime); 
 
-  quando si sveglia dal semaforo, fa una clock_nanosleep() per vedere
-  cosa fare. (serve un ulteriore flag o qualcosa di simile nella task_struct)
+   quando si sveglia dal semaforo, fa una clock_nanosleep() per vedere
+   cosa fare. (serve un ulteriore flag o qualcosa di simile nella task_struct)
 
 ** TODO Commentare bene i modi  
+
+** TODO add error codes
+
+* Internal refactoring
+
+** TODO move _tsem structure into _tp structure
+   (there is no reason to put them outside)
+
+** TODO group all global sys params into a structure 
+   (easier to document and to understand)
 

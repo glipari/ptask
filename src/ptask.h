@@ -21,12 +21,14 @@
 
 typedef enum {PARTITIONED, GLOBAL} global_policy;
 typedef enum {PRIO_INHERITANCE, PRIO_CEILING, NO_PROTOCOL} sem_protocol;
+typedef enum {PERIODIC, APERIODIC} ptask_type;
 
 /**
    This structure is used to simplify the creation of a task by
    setting standard arguments
  */
-typedef struct _tst {
+typedef struct {
+  ptask_type type; 
   tspec period; 
   tspec rdline;
   int priority;              /*< from 0 to 99                         */
@@ -64,17 +66,33 @@ void  ptask_init(int policy,
 		 global_policy global, 
 		 sem_protocol protocol); 
 
+/** Prints an error message on stderr and exits. The first string
+    should contain the name of the failing function, the second string
+    should contain a description of the error */
+void  ptask_syserror(char *fun, char *msg); 
 
-void  ptask_syserror(char *fun, char *msg);
 
-/*-----------------------------------------------------------------*/
-/*			TASK FUNCTIONS                             */
-/*-----------------------------------------------------------------*/
-void	  wait_for_activation();  /** waits for an exp. activation */
-void	  wait_for_period();      /** waits for next periodic act. */
-void      set_activation(const tspec *off); /** sets the act. time */
-int       get_taskindex();        /** returns the task own index   */
-pthread_t get_threadid(int i);    /** returns the thread own id    */
+/*--------------------------------------------------------------------- */
+/*			TASK CREATION                                   */
+/*----------------------------------------------------------------------*/
+int   task_create(void (*task)(void), 
+		  int period, int drel, int prio, int aflag);
+
+int   task_create_ex(void (*task)(void), task_spec_t *tp);
+
+/*-------------------------------------------------------------------------- */
+/*			TASK FUNCTIONS                                       */
+/*---------------------------------------------------------------------------*/
+void      wait_for_instance(); /** waits for next act, periodic or aperiodic */
+void	  wait_for_activation();  /** waits for an exp. activation           */
+//void	  wait_for_period();      /** waits for next periodic act.           */
+
+void	  task_activate(int i); /** activates the task of idx i              */
+
+
+void      set_activation(const tspec *off); /** sets the act. time           */
+int       get_taskindex();        /** returns the task own index             */
+pthread_t get_threadid(int i);    /** returns the thread own id              */
 int	  deadline_miss(int i);
 
 void	  task_setdeadline(int i, int dline);
@@ -90,12 +108,6 @@ long	  task_atime(int i);
 long	  task_absdl(int i);
 
 
-int	  task_create(void (*task)(void), 
-		      int period, int drel, int prio, int aflag);
-
-int	  task_create_ex(void (*task)(void), task_spec_t *tp);
-
-void	  task_activate(int i);
 
 int       task_migrate_to(int core_id); 
 
