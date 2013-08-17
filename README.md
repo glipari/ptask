@@ -4,6 +4,7 @@ ptask
 Periodic Real-Time Task interface to pthreads
 
 Version 0.1, April 2013
+Version 0.2, August 2013
 
 Authors 
 -------
@@ -22,7 +23,5 @@ extensible to more complex usage scenarios.
 Currently it provides:
 
 - An API for implementing periodic and aperiodic tasks;
-    
 - A simple API for group scheduling and synchronization;
-
 - An API for mode changes. 
