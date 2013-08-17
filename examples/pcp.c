@@ -269,9 +269,10 @@ int	dl, at = 0;
 		}
 	/*----------------------------------------------*/
 
-		if (deadline_miss(i)) {
-			sprintf(s, "%d", task_dmiss(i));
-			textout_ex(screen, font, s, OFFSET+dl/scale-4, lev1+8, 7, 0);
+		if (ptask_deadline_miss()) {
+		    // TO BE DONE
+		    //sprintf(s, "%d", task_dmiss(i));
+		    //textout_ex(screen, font, s, OFFSET+dl/scale-4, lev1+8, 7, 0);
 		}
 
 		ptask_wait_for_instance();

@@ -68,12 +68,12 @@ int main()
     // now all tasks have been creates, I am ready to start
     printf("Press a key and enter to start all tasks\n");
 
-    char c = getchar();
+    getchar();
 
     pbarrier_wait(&barrier, 0);
 
     printf("All tasks have started, now press a key + enter to finish");
-    c = getchar();
+    getchar();
 
     return 0;
 }

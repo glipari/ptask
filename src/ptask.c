@@ -331,7 +331,7 @@ void set_activation(const tspec *t)
     _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline);
 }
 
-pthread_t get_threadid(int i)
+pthread_t ptask_get_threadid(int i)
 {
     return _tid[i];
 }
@@ -352,15 +352,6 @@ int	task_period(int i)
 int	task_deadline(int i)
 {
     return tspec_to(&_tp[i].deadline, MILLI);
-}
-
-/*--------------------------------------------------------------*/
-/*  TASK_DMISS: returns the number of deadline misses		*/
-/*--------------------------------------------------------------*/
-
-int	task_dmiss(int i)
-{
-    return _tp[i].dmiss;
 }
 
 /*--------------------------------------------------------------*/
@@ -410,26 +401,19 @@ void	task_setdeadline(int i, int dline)
 /*		   and returns 1, otherwise returns 0		*/
 /*--------------------------------------------------------------*/
 
-int	deadline_miss(int i)
+int ptask_deadline_miss()
 {
     struct timespec now;
-
     clock_gettime(CLOCK_MONOTONIC, &now);
-
-    if (tspec_cmp(&now, &_tp[i].dl) > 0) {
-	_tp[i].dmiss++;
-	return 1;
-    }
-    return 0;
+    if (tspec_cmp(&now, &_tp[ptask_idx].dl) > 0) return 1;
+    else return 0;
 }
-
-
 
 /*--------------------------------------------------------------*/
 /*  TASK_ACTIVATE: activate task i				*/
 /*--------------------------------------------------------------*/
 
-void	ptask_activate(int i)
+void ptask_activate(int i)
 {
     struct timespec t;
     

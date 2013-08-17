@@ -60,8 +60,8 @@ int main()
 	exit(-1);
     }
 
-    pthread_join(get_threadid(pid), 0);
-    pthread_join(get_threadid(aperiodic_id), 0);
+    pthread_join(ptask_get_threadid(pid), 0);
+    pthread_join(ptask_get_threadid(aperiodic_id), 0);
 
     assert(ca == 5);
 

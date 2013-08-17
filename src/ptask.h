@@ -88,15 +88,14 @@ void      ptask_wait_for_instance(); /** waits for next period or activation */
 void	  ptask_wait_for_activation(); /** waits for an exp. activation      */
 int       ptask_migrate_to(int core_id); /** migrate task to processor       */
 int       ptask_get_index();        /** returns the task own index           */
+int	  ptask_deadline_miss();    /** true is the task missed its deadline */
 
 void      set_activation(const tspec *off); /** sets the act. time           */
 
 /* Global functions on tasks */
 void	  ptask_activate(int i); /** activates the task of idx i              */
 
-
-pthread_t get_threadid(int i);    /** returns the thread own id              */
-int	  deadline_miss(int i);
+pthread_t ptask_get_threadid(int i);    /** returns the thread own id              */
 
 void	  task_setdeadline(int i, int dline);
 void *    task_argument();
@@ -104,7 +103,6 @@ void	  task_setperiod(int i, int per);
 int	  task_period(int i);
 int	  task_deadline(int i);
 void	  task_setdeadline(int i, int dline);
-int	  task_dmiss(int i);
 long	  task_atime(int i);
 long	  task_absdl(int i);
 

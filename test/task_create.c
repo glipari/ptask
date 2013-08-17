@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <ptask.h>
 
 void mytask()
@@ -33,7 +34,7 @@ int main()
   int index = ptask_create_ex(mytask, &tparam);
   if (index >= 0) printf("Task %d created\n", index);
 
-  pthread_join(get_threadid(index), 0);
+  pthread_join(ptask_get_threadid(index), 0);
 
   
   tparam = (task_spec_t) {
@@ -54,7 +55,7 @@ int main()
   printf("Now activating\n");
   ptask_activate(index);
 
-  pthread_join(get_threadid(index), 0);
+  pthread_join(ptask_get_threadid(index), 0);
   
   printf("Task completed!\n");
 

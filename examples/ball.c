@@ -76,10 +76,10 @@ int	ox, oy;		/* vecchia posizione pallina    */
 int	x0;		/* posizione iniziale X pallina */
 float	vx, vy;		/* velocità della pallina   */
 float	t, tx;		/* variabile temporale      */
-float	z, z0;		/* posizione della pallina  */
+//float	z, z0;		/* posizione della pallina  */
 float	dt;		/* incremento temporale     */
 double	a;		/* variabile di appoggio    */
-long	j, k;
+//long	j, k;
 
         i = ptask_get_index();
 	col = 2 + i%14;
@@ -130,7 +130,7 @@ long	j, k;
 		tx += dt;
 
 		/* check for deadline miss */
-		if (deadline_miss(i)) {
+		if (ptask_deadline_miss()) {
 			dcol = dcol%15 + 1;
 			pthread_mutex_lock(&mxa);
 			rectfill(screen, 400, 50, 450, 70, dcol);
@@ -225,23 +225,27 @@ int	main(void)
 	    }
 	}
 
+	/*
+	  Printing deadline misses
+	  TO BE DONE 
 	for (j=0; j<ntasks; j++) {
 	    sprintf(s, "%d", task_dmiss(j));
 	    textout_ex(screen, font, s, 50+j*48, 450, 7, 0);
 	}
+	*/
 
     } while (k != KEY_ESC);
     
     printf("Now printing the stats\n");
     for (j=0; j<ntasks; j++) {
-	tspec wcet = tstat_getwcet(j);
-	tspec acet = tstat_getavg(j);
+	tspec wcet = ptask_get_wcet(j);
+	tspec acet = ptask_get_avg(j);
 
 	printf("TASK %d: WCET = %ld\t ACET = %ld\t NINST=%d\n", 
 	       j, 
 	       tspec_to(&wcet, MICRO), 
 	       tspec_to(&acet, MICRO), 
-	       tstat_getnuminstances(j)); 
+	       ptask_get_numinstances(j)); 
     }
     
     printf("End of statistics\n");
