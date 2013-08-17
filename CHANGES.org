@@ -22,13 +22,38 @@
     pthread). If you specify act_flag=NOACT, then the thread waits for an 
     explicit activation with the task_activate()
 
-**** TODO implement group activation
+*** wait_for_period() has been substituted with wait_for_instance()
+    The latter is also valid for aperiodic tasks. 
+    Now, a task (both periodic and aperiodic) has the same structure:
+    
+    while (...) {
+       <task body> 
+       wait_for_instance();
+    }
+
+    if the task is periodic, the wait_for_instance waits until the end of the
+    period; if it is aperiodic, the wait_for_instance() waits for an explicit
+    activate. 
+
+    Function wait_for_activation() has been kept, and is simply blocks the 
+    task on a private semaphore until the task is activated expliticely with 
+    a task_activate(). This function can be invoked by both periodic and 
+    aperiodic tasks without distinctions. 
+
+*** task_create() and task_create_ex() have been remaned
+    Now their name starts with ptask_ for uniformity of the interface.
+
+
+ 
+
+
+
 
 ** Known Issues
 
-***  ball.c crashes on exit. 
-     In particular, the allegro_exit() produces a core-dump.  I still
-     do not know what is going on with that
+*** ball.c crashes on exit. 
+    In particular, the allegro_exit() produces a core-dump.  I still
+    do not know what is going on with that.
      
 *** pcp.c sometimes crashes
 

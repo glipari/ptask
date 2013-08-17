@@ -48,7 +48,7 @@
     ACT  -->    IMMEDIATE   (default)
     NO_ACT  --> DEFERRED   
 
-*** TODO periodico o aperiodico
+*** DONE periodico o aperiodico
 
     unificare la wait_for_period() e la wait_for_activation(), adesso
     solo la seconda che decide cosa fare a seconda del "tipo" del task

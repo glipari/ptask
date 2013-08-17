@@ -288,7 +288,7 @@ void	gen()
   int	i, j; 
 
 	for (i=1; i<nt; i++) {
-		j = task_create(task, period[i], dline[i], prio[i], NOACT);
+		j = ptask_create(task, period[i], dline[i], prio[i], NOACT);
 	}
 
 	for (i=1; i<nt; i++) {
@@ -318,7 +318,7 @@ long	t;
 	lev1 = LEV0 - 2;
 	lev2 = LEV0 - 2 - DEX;
 
-	task_create(gen, 100, 100, 30, ACT);
+	ptask_create(gen, 100, 100, 30, ACT);
 
 	while (key != KEY_ESC) {
 

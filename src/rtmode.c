@@ -92,7 +92,7 @@ int rtmode_init(rtmode_t *g, int nmodes)
     task_spec_t param = TASK_SPEC_DFL;
     param.priority = 99;
     param.arg = g;
-    g->manager_id = task_create_ex(mode_manager, &param);
+    g->manager_id = ptask_create_ex(mode_manager, &param);
 
     return g->manager_id;
 }

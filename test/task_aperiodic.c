@@ -40,7 +40,7 @@ int main()
     params.act_flag = ACT;
     
     printf("Creating aperiodic task");
-    aperiodic_id = task_create_ex(myaperiodic, &params);
+    aperiodic_id = ptask_create_ex(myaperiodic, &params);
 
     if (aperiodic_id < 0) {
 	printf("Cannot create aperiodic task\n");
@@ -54,7 +54,7 @@ int main()
     params.act_flag = ACT;
 
     printf("Creating periodic task");
-    int pid = task_create_ex(myperiodic, &params);
+    int pid = ptask_create_ex(myperiodic, &params);
     if (pid < 0) {
 	printf("Cannot create aperiodic task\n");
 	exit(-1);

@@ -75,10 +75,10 @@ void  ptask_syserror(char *fun, char *msg);
 /*--------------------------------------------------------------------- */
 /*			TASK CREATION                                   */
 /*----------------------------------------------------------------------*/
-int   task_create(void (*task)(void), 
+int  ptask_create(void (*task)(void), 
 		  int period, int drel, int prio, int aflag);
 
-int   task_create_ex(void (*task)(void), task_spec_t *tp);
+int   ptask_create_ex(void (*task)(void), task_spec_t *tp);
 
 /*-------------------------------------------------------------------------- */
 /*			TASK FUNCTIONS                                       */
@@ -106,8 +106,6 @@ void	  task_setdeadline(int i, int dline);
 int	  task_dmiss(int i);
 long	  task_atime(int i);
 long	  task_absdl(int i);
-
-
 
 int       task_migrate_to(int core_id); 
 

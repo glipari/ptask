@@ -231,7 +231,7 @@ static int __create_internal(void (*task)(void), task_spec_t *tp)
     }  
 }
 
-int task_create_ex(void (*task)(void), task_spec_t *tp)
+int ptask_create_ex(void (*task)(void), task_spec_t *tp)
 {
      return __create_internal(task, tp);
 }
@@ -241,7 +241,7 @@ int task_create_ex(void (*task)(void), task_spec_t *tp)
 /*  TASK_CREATE: initialize thread parameters and creates a	*/
 /*		 thread						*/
 /*--------------------------------------------------------------*/
-int task_create(
+int ptask_create(
     void (*task)(void),
     int	period,
     int	drel,
