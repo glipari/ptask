@@ -10,18 +10,17 @@
 struct task_par {
     ptask_type type;    /* periodic or aperiodic        */
     void * arg;         /* task argument                */
-    int  index;		/* task argument		*/
-    long wcet;		/* task WCET in microseconds	*/
+    int   index;	/* task index		        */
     tspec period;	/* task period 	                */
     tspec deadline;	/* relative deadline 	        */
-    int	 priority;	/* task priority in [0,99]	*/
-    int  dmiss;		/* number of deadline miss	*/
+    int	  priority;	/* task priority in [0,99]	*/
+    int   dmiss;	/* number of deadline misses	*/
     tspec at;		/* next activation time		*/
     tspec dl;		/* current absolute deadline	*/
     void (*body)(void); /* the actual body of the task  */
-    int free;           /* >=0 if this descr is avail.  */
-    int act_flag;       /* flag for postponed activ.    */
-    int measure_flag;   /* flag for measurement         */
+    int  free;          /* >=0 if this descr is avail.  */
+    int  act_flag;      /* flag for postponed activ.    */
+    int  measure_flag;  /* flag for measurement         */
     rtmode_t *modes;    /* the mode descripton          */
 };
 
@@ -33,7 +32,7 @@ const task_spec_t TASK_SPEC_DFL = {
     .priority = 1, 
     .processor = 0, 
     .act_flag = ACT, 
-    .measure = 0,
+    .measure_flag = 0,
     .arg = NULL,
     .modes = NULL,
     .nmodes = 0
@@ -55,6 +54,8 @@ tspec         ptask_t0;	                /* system start time	      */
 int           ptask_policy;		/* common scheduling policy   */
 global_policy ptask_global;             /* global or partitioned      */
 sem_protocol  ptask_protocol;           /* semaphore protocol         */
+static int    ptask_num_cores;          /* number of cores in the system */
+
 
 /**
    This function returns a free descriptor, or -1 if there are no more
@@ -150,6 +151,7 @@ void ptask_init(int policy,
     ptask_policy = policy;
     ptask_global = global;
     ptask_protocol = protocol;
+    ptask_num_cores = sysconf(_SC_NPROCESSORS_ONLN);
 
     /* initialize all private sem with the value 0	*/
     for (i=0; i<MAX_TASKS; i++) {
@@ -188,7 +190,7 @@ static int __create_internal(void (*task)(void), task_spec_t *tp)
     _tp[i].dmiss = 0;
     _tp[i].body = task;
     _tp[i].act_flag = tp->act_flag;
-    _tp[i].measure_flag = tp->measure;
+    _tp[i].measure_flag = tp->measure_flag;
     _tp[i].arg = tp->arg;
     _tp[i].modes = tp->modes;
     if (tp->modes != NULL) {
@@ -200,7 +202,7 @@ static int __create_internal(void (*task)(void), task_spec_t *tp)
 	    }
 	}
     }
-
+    
     pthread_attr_init(&myatt);
     if (ptask_policy != SCHED_OTHER)
 	pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
@@ -255,61 +257,9 @@ int ptask_create(
     param.act_flag = aflag;
 
     return __create_internal(task, &param);
-
-    /* pthread_attr_t	myatt; */
-    /* struct	sched_param mypar; */
-    /* int	tret; */
-    /* cpu_set_t cpuset; */
-    
-    /* int i = allocate_tp(); */
-    /* if (i == _TP_NOMORE) return -1; */
-    
-    /* _tp[i].index = i; */
-    /* _tp[i].wcet = 0; */
-    /* _tp[i].period = tspec_from(period, MILLI); */
-    /* _tp[i].deadline = tspec_from(drel, MILLI); */
-    /* _tp[i].priority = prio; */
-    /* _tp[i].dmiss = 0; */
-    /* _tp[i].body = task; */
-    /* _tp[i].act_flag = aflag; */
-    /* //_tp[i].wait_flag = 0; */
-    /* _tp[i].arg = NULL; */
-    /* _tp[i].modes = NULL; */
-
-    /* pthread_attr_init(&myatt); */
-    /* if (ptask_policy != SCHED_OTHER) */
-    /* 	pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED); */
-
-    /* pthread_attr_setschedpolicy(&myatt, ptask_policy); */
-
-    /* mypar.sched_priority = _tp[i].priority; */
-    /* pthread_attr_setschedparam(&myatt, &mypar); */
-
-    /* if (ptask_global == PARTITIONED) { */
-    /*   CPU_ZERO(&cpuset); */
-    /*   CPU_SET(0, &cpuset); */
-    /*   pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset); */
-    /* } */
-
-    /* tret = pthread_create(&_tid[i], &myatt,  */
-    /* 			  ptask_std_body, (void*)(&_tp[i])); */
-    /* pthread_attr_destroy(&myatt); */
-    
-    /* if (tret == 0) { */
-    /*   //if (aflag == ACT) task_activate(i); */
-    /*   return i; */
-    /* } */
-    /* else { */
-    /*   release_tp(i); */
-    /*   return -1; */
-    /* }  */
 }
 
 
-/*--------------------------------------------------------------*/
-/*  WAIT_FOR_PERIOD: suspends the calling thread until the next	*/
-/*		     activation and sets next activation time	*/
-/*--------------------------------------------------------------*/
 static void __wait_for_period()
 {
     if (_tp[ptask_idx].measure_flag)
@@ -347,12 +297,6 @@ void  wait_for_activation()
     sem_wait(&_tsem[ptask_idx]);
 }
 
-void set_activation(const tspec *t)
-{
-    _tp[ptask_idx].at = tspec_add(t, &_tp[ptask_idx].period);
-    _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline);
-}
-
 void wait_for_instance()
 {
     if (_tp[ptask_idx].type == PERIODIC) __wait_for_period();
@@ -363,25 +307,20 @@ void wait_for_instance()
 /*--------------------------------------------------------------*/
 /*  TASK_ARGUMENT: returns the argument of task i		*/
 /*--------------------------------------------------------------*/
-
 void * task_argument()
 {
     return _tp[ptask_idx].arg;
 }
 
+void set_activation(const tspec *t)
+{
+    _tp[ptask_idx].at = tspec_add(t, &_tp[ptask_idx].period);
+    _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline);
+}
 
 pthread_t get_threadid(int i)
 {
     return _tid[i];
-}
-
-/*--------------------------------------------------------------*/
-/*  TASK_WCET: returns the WCET of task i			*/
-/*--------------------------------------------------------------*/
-
-long	task_wcet(int i)
-{
-    return _tp[i].wcet;
 }
 
 /*--------------------------------------------------------------*/
@@ -433,15 +372,6 @@ long	task_absdl(int i)
 
     dl = _tp[i].dl.tv_sec*1000 + _tp[i].dl.tv_nsec/1000000;
     return dl;
-}
-
-/*--------------------------------------------------------------*/
-/*  TASK_SETWCET: set the wcet of task i			*/
-/*--------------------------------------------------------------*/
-
-void	task_setwcet(int i, long wc)
-{
-    _tp[i].wcet = wc;
 }
 
 /*--------------------------------------------------------------*/
@@ -504,23 +434,23 @@ void	task_activate(int i)
 
 /*--------------------------------------------------------------*/
 
-int task_migrate_to(int core_id) 
+int migrate_to(int core_id) 
 {
-   int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
-   if (core_id >= num_cores)
-      return -1;
-
-   cpu_set_t cpuset;
-   CPU_ZERO(&cpuset);
-   CPU_SET(core_id, &cpuset);
-
-   pthread_t current_thread = pthread_self();    
-   return pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
+    //int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+    if (core_id >= ptask_num_cores)
+	return -1;
+    
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core_id, &cpuset);
+    
+    pthread_t current_thread = pthread_self();    
+    return pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
 }
 
 int ptask_getnumcores()
 {
-  return sysconf(_SC_NPROCESSORS_ONLN);
+    return ptask_num_cores;
 }
 
 

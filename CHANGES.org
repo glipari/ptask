@@ -46,7 +46,8 @@
 
  
 
-
+*** removed the wcet related function
+    To measure wcet, use module tstat.h
 
 
 ** Known Issues

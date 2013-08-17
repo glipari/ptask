@@ -80,7 +80,7 @@
     int pt_get_period(taskid);
     int pt_get_priority(taskid);
 
-** TODO struttura interna
+** DONE struttura interna
 
    - cancellare wcet e funzioni relative
 

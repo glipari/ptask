@@ -179,7 +179,7 @@ int	main(void)
 	    params.period = tspec_from(PER, MILLI);
 	    params.rdline = tspec_from(DREL, MILLI);
 	    params.priority = PRIO-i;
-	    params.measure = 1;
+	    params.measure_flag = 1;
 	    params.act_flag = ACT;
 	    /* a round robin assignment */
 	    params.processor = last_proc++;

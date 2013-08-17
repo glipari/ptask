@@ -28,18 +28,18 @@ typedef enum {PERIODIC, APERIODIC} ptask_type;
    setting standard arguments
  */
 typedef struct {
-  ptask_type type; 
-  tspec period; 
-  tspec rdline;
-  int priority;              /*< from 0 to 99                         */
-  int processor;             /*< processor id                         */
-  int act_flag;              /*< ACT if the create activates the task */
-
-  int measure;               /*< if 1, activates measure of exec time */
-  void *arg;                 /*< pointer to a task argument           */
-  rtmode_t *modes;           /*< a pointer to the mode handler        */
-  int mode_list[RTMODE_MAX_MODES];  /*< the maximum number of modes   */
-  int nmodes;               /*< num of modes in which the task is act */
+    ptask_type type; 
+    tspec period; 
+    tspec rdline;
+    int priority;              /*< from 0 to 99                         */
+    int processor;             /*< processor id                         */
+    int act_flag;              /*< ACT if the create activates the task */
+    
+    int measure_flag;          /*< if 1, activates measure of exec time */
+    void *arg;                 /*< pointer to a task argument           */
+    rtmode_t *modes;           /*< a pointer to the mode handler        */
+    int mode_list[RTMODE_MAX_MODES];  /*< the maximum number of modes   */
+    int nmodes;               /*< num of modes in which the task is act */
 } task_spec_t;
 
 extern const task_spec_t TASK_SPEC_DFL;
@@ -86,19 +86,19 @@ int   ptask_create_ex(void (*task)(void), task_spec_t *tp);
 void      wait_for_instance(); /** waits for next act, periodic or aperiodic */
 void	  wait_for_activation();  /** waits for an exp. activation           */
 //void	  wait_for_period();      /** waits for next periodic act.           */
-
-void	  task_activate(int i); /** activates the task of idx i              */
-
+int       migrate_to(int core_id); /** migrate task to processor core_id     */
+int       get_taskindex();        /** returns the task own index             */
 
 void      set_activation(const tspec *off); /** sets the act. time           */
-int       get_taskindex();        /** returns the task own index             */
+
+/* Global functions on tasks */
+
+void	  task_activate(int i); /** activates the task of idx i              */
 pthread_t get_threadid(int i);    /** returns the thread own id              */
 int	  deadline_miss(int i);
 
 void	  task_setdeadline(int i, int dline);
 void *    task_argument();
-void	  task_setwcet(int i, long wc);
-long	  task_wcet(int i);
 void	  task_setperiod(int i, int per);
 int	  task_period(int i);
 int	  task_deadline(int i);
@@ -107,7 +107,6 @@ int	  task_dmiss(int i);
 long	  task_atime(int i);
 long	  task_absdl(int i);
 
-int       task_migrate_to(int core_id); 
 
 #endif
 
