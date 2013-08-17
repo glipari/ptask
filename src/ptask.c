@@ -183,7 +183,6 @@ static int __create_internal(void (*task)(void), task_spec_t *tp)
     
     _tp[i].type = tp->type;
     _tp[i].index = i;
-    _tp[i].wcet = 0;
     _tp[i].period = tp->period;
     _tp[i].deadline = tp->rdline;
     _tp[i].priority = tp->priority;
