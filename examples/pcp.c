@@ -215,7 +215,7 @@ int	dl, at = 0;
 
 	while (x < 640L) {
 
-		dl = at + task_deadline(i);
+	  dl = at + ptask_get_deadline(i, MILLI);
 
 		for (k=0; k<prtime[i]; k++) {
 			t = ptask_gettime(MILLI);
@@ -275,8 +275,8 @@ int	dl, at = 0;
 		    //textout_ex(screen, font, s, OFFSET+dl/scale-4, lev1+8, 7, 0);
 		}
 
-		ptask_wait_for_instance();
-		at = at + task_period(i);
+		ptask_wait_for_period();
+		at = at + ptask_get_period(i,MILLI);
 	}
 }
 
@@ -289,7 +289,7 @@ void	gen()
   int	i, j; 
 
 	for (i=1; i<nt; i++) {
-	  j = ptask_create(task, PERIODIC, period[i], prio[i], DEFERRED);
+	  j = ptask_create(task, period[i], prio[i], DEFERRED);
 	}
 
 	for (i=1; i<nt; i++) {
@@ -319,7 +319,7 @@ long	t;
 	lev1 = LEV0 - 2;
 	lev2 = LEV0 - 2 - DEX;
 
-	int gen_id = ptask_create(gen, PERIODIC, 100, 30, NOW);
+	int gen_id = ptask_create(gen, 100, 30, NOW);
 	if (gen_id < 0) {
 	    printf("Could not create task gen\n");
 	    exit(-1);

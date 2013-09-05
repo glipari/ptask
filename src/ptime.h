@@ -17,6 +17,8 @@ typedef long ptime;
 #define	MICRO	2
 #define	NANO	3
 
+extern const tspec tspec_zero;
+
 /**     Initializes this library   */
 void    tspec_init();
 /**     Returns the reference time */

@@ -40,7 +40,7 @@ int tasklist_add(tasklist_t *l, int taskid)
 static void mode_manager()
 {
     int i;
-    rtmode_t *g = (rtmode_t *) task_argument();
+    rtmode_t *g = (rtmode_t *) ptask_get_argument();
     tspec wakeup;
 
     while(1) {
@@ -89,7 +89,7 @@ int rtmode_init(rtmode_t *g, int nmodes)
     maxsem_init(&g->manager);
     g->head = g->tail = 0;
     
-    task_spec_t param = TASK_SPEC_DFL;
+    ptask_param param = TASK_SPEC_DFL;
     param.priority = 99;
     param.arg = g;
     g->manager_id = ptask_create_ex(mode_manager, &param);

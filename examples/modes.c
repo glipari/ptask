@@ -10,14 +10,14 @@ void taskbody()
     ptask_wait_for_activation();
     while (1) {
 	printf("Task T%d is running\n", ptask_get_index());
-	ptask_wait_for_instance();
+	ptask_wait_for_period();
     }
 }
 
 int main()
 {
     rtmode_t mymodes;
-    task_spec_t param;
+    ptask_param param;
     int res;
 
     ptask_init(SCHED_FIFO, GLOBAL, PRIO_INHERITANCE);

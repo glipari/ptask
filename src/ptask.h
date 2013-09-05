@@ -21,14 +21,13 @@
 
 typedef enum {PARTITIONED, GLOBAL} global_policy;
 typedef enum {PRIO_INHERITANCE, PRIO_CEILING, NO_PROTOCOL} sem_protocol;
-typedef enum {PERIODIC, APERIODIC} ptask_type;
+typedef enum {TASK_SUSPENDED, TASK_ACTIVE, TASK_WFP} ptask_state;
 
 /**
    This structure is used to simplify the creation of a task by
    setting standard arguments
  */
 typedef struct {
-    ptask_type type; 
     tspec period; 
     tspec rdline;
     int priority;              /*< from 0 to 99                         */
@@ -40,9 +39,40 @@ typedef struct {
     rtmode_t *modes;           /*< a pointer to the mode handler        */
     int mode_list[RTMODE_MAX_MODES];  /*< the maximum number of modes   */
     int nmodes;               /*< num of modes in which the task is act */
-} task_spec_t;
+} ptask_param;
 
-extern const task_spec_t TASK_SPEC_DFL;
+extern const ptask_param TASK_SPEC_DFL;
+
+/*----------------------------------------------------------------------------*/
+/*             Setting the parameters                                         */
+/*----------------------------------------------------------------------------*/
+
+#define ptask_param_period(s, p, u) (s.period = tspec_from(p, u))
+
+#define ptask_param_deadline(p, deadline, unit) \
+    (p.rdline = tspec_from(deadline, unit))
+
+#define ptask_param_priority(p, prio) \
+    (p.priority = prio)
+
+#define ptask_param_processor(p, processor) \
+    (p.processor = processor)
+
+#define ptask_param_activation(p, mode) \
+    (p.act_flag = mode)
+
+#define ptask_param_measure(p) \
+    (p.measure_flag = 1)
+
+#define ptask_param_argument(p, arg) \
+    (p.arg = arg)
+
+#define ptask_param_modes(p, modes, nmodes) \
+    (p->modes = modes, p->nmodes = nmodes)
+
+#define ptask_param_mode_add(p, n, mode_num) \
+    (p->mode_list[n] = mode_num)
+
 
 /* ------------------------------------------------------------------ */
 /*                     GLOBAL FUNCTIONS                               */
@@ -76,35 +106,40 @@ void  ptask_syserror(char *fun, char *msg);
 /*			TASK CREATION                                   */
 /*----------------------------------------------------------------------*/
 int  ptask_create(void (*task)(void),
-		  ptask_type type,
 		  int period, int prio, int aflag);
 
-int   ptask_create_ex(void (*task)(void), task_spec_t *tp);
+int  ptask_create_ex(void (*task)(void), ptask_param *tp);
 
 /*-------------------------------------------------------------------------- */
 /*			TASK FUNCTIONS                                       */
 /*---------------------------------------------------------------------------*/
-void      ptask_wait_for_instance(); /** waits for next period or activation */
+void      ptask_wait_for_period();   /** waits for next period or activation */
 void	  ptask_wait_for_activation(); /** waits for an exp. activation      */
-int       ptask_migrate_to(int core_id); /** migrate task to processor       */
 int       ptask_get_index();        /** returns the task own index           */
 int	  ptask_deadline_miss();    /** true is the task missed its deadline */
-
-void      set_activation(const tspec *off); /** sets the act. time           */
+void *    ptask_get_argument();     /** returns the task argument            */
 
 /* Global functions on tasks */
-void	  ptask_activate(int i); /** activates the task of idx i              */
+int 	  ptask_activate(int i); /** activates the task of idx i              */
+int	  ptask_activate_at(int i, ptime off); /** activates the task of idx i*/
+pthread_t ptask_get_threadid(int i);    /** returns the thread id of task i   */
+ptask_state ptask_get_state(int i);  /** return the current task state        */
 
-pthread_t ptask_get_threadid(int i);    /** returns the thread own id              */
+/*----------------------------------------------------------------------------*/
+/*             Dinamically changing parameters                                */
+/*----------------------------------------------------------------------------*/
 
-void	  task_setdeadline(int i, int dline);
-void *    task_argument();
-void	  task_setperiod(int i, int per);
-int	  task_period(int i);
-int	  task_deadline(int i);
-void	  task_setdeadline(int i, int dline);
-long	  task_atime(int i);
-long	  task_absdl(int i);
+int	  ptask_get_deadline(int i, int unit);
+void	  ptask_set_deadline(int i, int dline, int unit);
+
+int	  ptask_get_period(int i, int unit);
+void	  ptask_set_period(int i, int per, int unit);
+
+int	  ptask_get_priority(int i);
+void	  ptask_set_priority(int i, int prio);
+
+int       ptask_get_processor(int i);
+int       ptask_migrate_to(int i, int core_id); /** migrate task to processor */
 
 
 #endif

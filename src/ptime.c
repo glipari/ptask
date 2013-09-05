@@ -14,6 +14,8 @@ const struct unit_conv conv_table[] = {
 
 static tspec tspec_t0;
 
+const tspec tspec_zero = {0, 0};
+
 tspec tspec_get_ref()
 {
     return tspec_t0;

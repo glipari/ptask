@@ -91,7 +91,7 @@ double	a;		/* variabile di appoggio    */
 	vx = VELX;
 	tx = 0.0;
 	t = vy / G;
-	dt = task_period(i) / 100.;
+	dt = ptask_get_period(i, MILLI) / 100.;
 
 	// removed, unless a specific activation from the main is done
 	// wait_for_activation();
@@ -136,7 +136,7 @@ double	a;		/* variabile di appoggio    */
 			rectfill(screen, 400, 50, 450, 70, dcol);
 			pthread_mutex_unlock(&mxa);
 		}
-		ptask_wait_for_instance();
+		ptask_wait_for_period();
 	}
 }
 
@@ -174,8 +174,7 @@ int	main(void)
 	}
 
 	if ((ntasks < MAX_TASKS) && (k == KEY_SPACE)) {
-	    task_spec_t params = TASK_SPEC_DFL;
-	    params.type = PERIODIC;
+	    ptask_param params = TASK_SPEC_DFL;
 	    params.period = tspec_from(PER, MILLI);
 	    params.rdline = tspec_from(DREL, MILLI);
 	    params.priority = PRIO-i;

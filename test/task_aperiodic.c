@@ -15,7 +15,7 @@ void myperiodic()
 	printf("Periodic task, %d\n", i);
 	cp++;
 	ptask_activate(aperiodic_id); 
-	ptask_wait_for_instance();
+	ptask_wait_for_period();
     }
 }
 
@@ -23,7 +23,7 @@ void myaperiodic()
 {
     int i;
     for (i=0; i<4; i++) {
-	ptask_wait_for_instance();
+	ptask_wait_for_activation();
 	printf("APeriodic task, %d\n", i);
 	ca = cp + 1;
     }
@@ -34,12 +34,11 @@ int main()
 {
     ptask_init(SCHED_FIFO, GLOBAL, PRIO_INHERITANCE);
 
-    task_spec_t params = TASK_SPEC_DFL;
-    params.type = APERIODIC;
+    ptask_param params = TASK_SPEC_DFL;
     params.priority = 2;
     params.act_flag = NOW;
     
-    printf("Creating aperiodic task");
+    printf("Creating aperiodic task\n");
     aperiodic_id = ptask_create_ex(myaperiodic, &params);
 
     if (aperiodic_id < 0) {
@@ -48,12 +47,11 @@ int main()
     }
     
     params = TASK_SPEC_DFL;
-    params.type = PERIODIC;
     params.period = tspec_from(1, SEC);
     params.priority = 1;
     params.act_flag = NOW;
 
-    printf("Creating periodic task");
+    printf("Creating periodic task\n");
     int pid = ptask_create_ex(myperiodic, &params);
     if (pid < 0) {
 	printf("Cannot create aperiodic task\n");
