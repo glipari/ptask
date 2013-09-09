@@ -89,10 +89,10 @@ int rtmode_init(rtmode_t *g, int nmodes)
     maxsem_init(&g->manager);
     g->head = g->tail = 0;
     
-    ptask_param param = TASK_SPEC_DFL;
+    tpars param = TASK_SPEC_DFL;
     param.priority = 99;
     param.arg = g;
-    g->manager_id = ptask_create_ex(mode_manager, &param);
+    g->manager_id = ptask_create_param(mode_manager, &param);
 
     return g->manager_id;
 }

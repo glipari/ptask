@@ -25,3 +25,34 @@ Currently it provides:
 - An API for implementing periodic and aperiodic tasks;
 - A simple API for group scheduling and synchronization;
 - An API for mode changes. 
+
+A manual is available in ptask_manual.pdf
+
+------------------------------------------------------------------
+
+INSTRUCTIONS
+
+To compile the library the first time, enter into directory src/ and type:
+
+  make depend; make 
+
+this produces the library file libptask.a, that must be included into your
+projects.
+
+To compile the examples, use the same procedure in directory examples/. 
+Before running the examples, remember to become super-user, otherwise
+Linux will not allow you to create real-time tasks!
+
+To compile the tests, enter directory test/ and once again run 
+
+  make depend; make 
+
+To run the tests, just execute the script
+
+  ./runtests.sh
+
+Happy programming!
+
+
+
+

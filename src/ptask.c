@@ -27,8 +27,7 @@ struct task_par {
     int cpu_id;
 };
 
-
-const ptask_param TASK_SPEC_DFL = {
+const tpars TASK_SPEC_DFL = {
     .period = {1, 0},  
     .rdline = {1, 0},
     .priority = 1, 
@@ -40,6 +39,8 @@ const ptask_param TASK_SPEC_DFL = {
     .nmodes = 0
 };
 
+#define _TP_BUSY    -2
+#define _TP_NOMORE  -1
 
        pthread_t	 _tid[MAX_TASKS];
        struct task_par	 _tp[MAX_TASKS];
@@ -48,9 +49,6 @@ static pthread_mutex_t   _tp_mutex; /** this is used to protect the
 					_tp data structure from concurrent
 					accesses from the main and the 
 					threads */
-#define _TP_BUSY    -2
-#define _TP_NOMORE  -1
-
        sem_t         _tsem[MAX_TASKS];	 /* for task_activate	      */
        tspec         ptask_t0;	         /* system start time	      */
        int           ptask_policy;	 /* common scheduling policy   */
@@ -181,10 +179,10 @@ void ptask_init(int policy,
 }
 
 
-static int __create_internal(void (*task)(void), ptask_param *tp)
+static int __create_internal(void (*task)(void), tpars *tp)
 {
     pthread_attr_t	myatt;
-    struct	sched_param mypar;
+    struct sched_param  mypar;
     int	tret;
     int j=0;
     
@@ -255,7 +253,7 @@ static int __create_internal(void (*task)(void), ptask_param *tp)
     }  
 }
 
-int ptask_create_ex(void (*task)(void), ptask_param *tp)
+int ptask_create_param(void (*task)(void), tpars *tp)
 {
      return __create_internal(task, tp);
 }
@@ -271,7 +269,7 @@ int ptask_create(
     int	prio,
     int	aflag)
 {
-    ptask_param param = TASK_SPEC_DFL;
+    tpars param = TASK_SPEC_DFL;
     param.period = tspec_from(period, MILLI);
     param.rdline = tspec_from(period, MILLI);
     param.priority = prio;
@@ -400,7 +398,12 @@ int	ptask_get_priority(int i)
 
 void	ptask_set_priority(int i, int prio)
 {
+    struct sched_param  mypar;
     _tp[i].priority = prio;
+    mypar.sched_priority = prio;
+    sched_setscheduler(ptask_get_threadid(i),
+		       ptask_policy,
+		       &mypar);
 }
 
 int	task_deadline(int i)

@@ -150,7 +150,6 @@ int	main(void)
     int	i, j, k;		/* number of tasks created	*/
     double  a;			/* temporary variable           */
     int	h;			/* temporary variable           */
-    char	s[20];
     int     ntasks = 0;         /* total number of created tasks*/
     int last_proc = 0;          /* last assigned processor      */
     int max_proc = ptask_getnumcores(); /* max number of procs  */
@@ -174,7 +173,7 @@ int	main(void)
 	}
 
 	if ((ntasks < MAX_TASKS) && (k == KEY_SPACE)) {
-	    ptask_param params = TASK_SPEC_DFL;
+	    tpars params = TASK_SPEC_DFL;
 	    params.period = tspec_from(PER, MILLI);
 	    params.rdline = tspec_from(DREL, MILLI);
 	    params.priority = PRIO-i;
@@ -185,7 +184,7 @@ int	main(void)
 	    if (last_proc >= max_proc) last_proc = 0;
 
 	    /** i = task_create(palla, PER, DREL, PRIO-i, NOW); */
-	    i = ptask_create_ex(palla, &params);
+	    i = ptask_create_param(palla, &params);
 	    if (i != -1) {
 		printf("Task %d created and activated\n", i);
 		ntasks++;

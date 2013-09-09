@@ -34,12 +34,12 @@ int main()
 {
     ptask_init(SCHED_FIFO, GLOBAL, PRIO_INHERITANCE);
 
-    ptask_param params = TASK_SPEC_DFL;
+    tpars params = TASK_SPEC_DFL;
     params.priority = 2;
     params.act_flag = NOW;
     
     printf("Creating aperiodic task\n");
-    aperiodic_id = ptask_create_ex(myaperiodic, &params);
+    aperiodic_id = ptask_create_param(myaperiodic, &params);
 
     if (aperiodic_id < 0) {
 	printf("Cannot create aperiodic task\n");
@@ -52,7 +52,7 @@ int main()
     params.act_flag = NOW;
 
     printf("Creating periodic task\n");
-    int pid = ptask_create_ex(myperiodic, &params);
+    int pid = ptask_create_param(myperiodic, &params);
     if (pid < 0) {
 	printf("Cannot create aperiodic task\n");
 	exit(-1);

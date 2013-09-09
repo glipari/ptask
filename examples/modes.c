@@ -5,7 +5,7 @@
 #define MODE_ON    1
 #define MODE_FAIL  2
 
-void taskbody()
+ptask taskbody()
 {
     ptask_wait_for_activation();
     while (1) {
@@ -17,7 +17,7 @@ void taskbody()
 int main()
 {
     rtmode_t mymodes;
-    ptask_param param;
+    tpars param;
     int res;
 
     ptask_init(SCHED_FIFO, GLOBAL, PRIO_INHERITANCE);
@@ -35,7 +35,7 @@ int main()
     param.nmodes = 2;
     param.mode_list[0] = MODE_ON;
     param.mode_list[1] = MODE_FAIL;
-    res = ptask_create_ex(taskbody, &param);
+    res = ptask_create_param(taskbody, &param);
 
     printf("Creation of first task: %d\n", res);
     
@@ -46,7 +46,7 @@ int main()
     param.modes = &mymodes;
     param.nmodes = 1;
     param.mode_list[0] = MODE_ON;
-    res = ptask_create_ex(taskbody, &param);
+    res = ptask_create_param(taskbody, &param);
     
     printf("Creation of second task: %d\n", res);
 
@@ -57,7 +57,7 @@ int main()
     param.modes = &mymodes;
     param.nmodes = 1;
     param.mode_list[0] = MODE_FAIL;
-    res = ptask_create_ex(taskbody, &param);
+    res = ptask_create_param(taskbody, &param);
     
     printf("Creation of third task: %d\n", res);
 

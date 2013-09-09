@@ -199,85 +199,84 @@ void	init(int policy, int prot)
 
 void	task()
 {
-char	s[20];
-int	x;
-long	t;
-int	i, k;
-int	lev1, lev2, col;
-int	dl, at = 0;
+    int	x;
+    long	t;
+    int	i, k;
+    int	lev1, lev2, col;
+    int	at = 0;
 
-        i = ptask_get_index();
+    i = ptask_get_index();
 
-	lev1 = LEV0 + DLEV*i - 2;
-	lev2 = LEV0 + DLEV*i - 2 - DEX;
-	col = 1 + i%15;
-	//wait_for_activation();
+    lev1 = LEV0 + DLEV*i - 2;
+    lev2 = LEV0 + DLEV*i - 2 - DEX;
+    col = 1 + i%15;
+    //wait_for_activation();
 
-	while (x < 640L) {
+    while (x < 640L) {
 
-	  dl = at + ptask_get_deadline(i, MILLI);
+	//dl = at + ptask_get_deadline(i, MILLI);
 
-		for (k=0; k<prtime[i]; k++) {
-			t = ptask_gettime(MILLI);
-			x = OFFSET + t/scale;
-			pthread_mutex_lock(&mxa);
-			line(screen, x, lev1, x, lev2, col);
-			pthread_mutex_unlock(&mxa);
-			while (ptask_gettime(MILLI) == t);
-		}
+	for (k=0; k<prtime[i]; k++) {
+	    t = ptask_gettime(MILLI);
+	    x = OFFSET + t/scale;
+	    pthread_mutex_lock(&mxa);
+	    line(screen, x, lev1, x, lev2, col);
+	    pthread_mutex_unlock(&mxa);
+	    while (ptask_gettime(MILLI) == t);
+	}
 
 	/*----------------------------------------------*/
 	/* Critical section guarded by muxA		*/ 
 	/*----------------------------------------------*/
-		if ((i != 2) && (i != 4)) {
-			pthread_mutex_lock(&muxA);
-			for (k=0; k<csa[i]; k++) {
-				t = ptask_gettime(MILLI);
-				x = OFFSET + t/scale;
-				pthread_mutex_lock(&mxa);
-				line(screen, x, lev1-1, x, lev2+1, CSCOLA);
-				pthread_mutex_unlock(&mxa);
-				while (ptask_gettime(MILLI) == t);
-			}
-			pthread_mutex_unlock(&muxA);
-		}
+	if ((i != 2) && (i != 4)) {
+	    pthread_mutex_lock(&muxA);
+	    for (k=0; k<csa[i]; k++) {
+		t = ptask_gettime(MILLI);
+		x = OFFSET + t/scale;
+		pthread_mutex_lock(&mxa);
+		line(screen, x, lev1-1, x, lev2+1, CSCOLA);
+		pthread_mutex_unlock(&mxa);
+		while (ptask_gettime(MILLI) == t);
+	    }
+	    pthread_mutex_unlock(&muxA);
+	}
 	/*----------------------------------------------*/
-		if (i != 4) {
-			for (k=0; k<prtime[i]; k++) {
-				t = ptask_gettime(MILLI);
-				x = OFFSET + t/scale;
-				pthread_mutex_lock(&mxa);
-				line(screen, x, lev1, x, lev2, col);
-				pthread_mutex_unlock(&mxa);
-				while (ptask_gettime(MILLI) == t);
-			}
-		}
+	if (i != 4) {
+	    for (k=0; k<prtime[i]; k++) {
+		t = ptask_gettime(MILLI);
+		x = OFFSET + t/scale;
+		pthread_mutex_lock(&mxa);
+		line(screen, x, lev1, x, lev2, col);
+		pthread_mutex_unlock(&mxa);
+		while (ptask_gettime(MILLI) == t);
+	    }
+	}
 	/*----------------------------------------------*/
 	/* Critical section guarded by muxB		*/ 
 	/*----------------------------------------------*/
-		if (i != 2) {
-			pthread_mutex_lock(&muxB);
-			for (k=0; k<csb[i]; k++) {
-				t = ptask_gettime(MILLI);
-				x = OFFSET + t/scale;
-				pthread_mutex_lock(&mxa);
-				line(screen, x, lev1-1, x, lev2+1, CSCOLB);
-				pthread_mutex_unlock(&mxa);
-				while (ptask_gettime(MILLI) == t);
-			}
-			pthread_mutex_unlock(&muxB);
-		}
+	if (i != 2) {
+	    pthread_mutex_lock(&muxB);
+	    for (k=0; k<csb[i]; k++) {
+		t = ptask_gettime(MILLI);
+		x = OFFSET + t/scale;
+		pthread_mutex_lock(&mxa);
+		line(screen, x, lev1-1, x, lev2+1, CSCOLB);
+		pthread_mutex_unlock(&mxa);
+		while (ptask_gettime(MILLI) == t);
+	    }
+	    pthread_mutex_unlock(&muxB);
+	}
 	/*----------------------------------------------*/
 
-		if (ptask_deadline_miss()) {
-		    // TO BE DONE
-		    //sprintf(s, "%d", task_dmiss(i));
-		    //textout_ex(screen, font, s, OFFSET+dl/scale-4, lev1+8, 7, 0);
-		}
-
-		ptask_wait_for_period();
-		at = at + ptask_get_period(i,MILLI);
+	if (ptask_deadline_miss()) {
+	    // TO BE DONE
+	    //sprintf(s, "%d", task_dmiss(i));
+	    //textout_ex(screen, font, s, OFFSET+dl/scale-4, lev1+8, 7, 0);
 	}
+
+	ptask_wait_for_period();
+	at = at + ptask_get_period(i,MILLI);
+    }
 }
 
 /*--------------------------------------------------------------*/
@@ -286,15 +285,16 @@ int	dl, at = 0;
 
 void	gen()
 {
-  int	i, j; 
+    int	i, j; 
 
-	for (i=1; i<nt; i++) {
-	  j = ptask_create(task, period[i], prio[i], DEFERRED);
-	}
+    for (i=1; i<nt; i++) {
+	j = ptask_create(task, period[i], prio[i], DEFERRED);
+	if (j < 0) ptask_syserror("gen()", "error in creating task");
+    }
 
-	for (i=1; i<nt; i++) {
-		ptask_activate(i);
-	}
+    for (i=1; i<nt; i++) {
+	ptask_activate(i);
+    }
 }
 
 /*--------------------------------------------------------------*/
@@ -303,17 +303,13 @@ void	gen()
 
 int	main(void)
 {
-int	i;
 int	lev1, lev2;
 int	c, key = 0;
 long	x = 0;
 long	t;
 
 	get_data();
-/*	for (i=1; i<nt; i++) {
-		printf("Task %d: %d, %d, %d, %d\n", i, prtime[i], period[i], dline[i], prio[i]);
-	}
-*/
+
 	init(SCHED_FIFO, PCP);
 
 	lev1 = LEV0 - 2;

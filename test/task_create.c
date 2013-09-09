@@ -13,7 +13,7 @@ void mytask()
 
 int main()
 {
-  ptask_param tparam = TASK_SPEC_DFL;
+  tpars tparam = TASK_SPEC_DFL;
 
   ptask_init(SCHED_FIFO, PARTITIONED, PRIO_INHERITANCE);
 
@@ -21,7 +21,7 @@ int main()
 	 tparam.act_flag);
 
   // setting the parameters
-  tparam = (ptask_param) {
+  tparam = (tpars) {
     .period=tspec_from(1, SEC), 
     .rdline=tspec_from(1, SEC),
     .priority = 1, .processor = 1,
@@ -31,13 +31,13 @@ int main()
   printf("After setting the parameters: act_flag = %d\n",
 	 tparam.act_flag);
   
-  int index = ptask_create_ex(mytask, &tparam);
+  int index = ptask_create_param(mytask, &tparam);
   if (index >= 0) printf("Task %d created\n", index);
 
   pthread_join(ptask_get_threadid(index), 0);
 
   
-  tparam = (ptask_param) {
+  tparam = (tpars) {
     .period=tspec_from(1, SEC), 
     .rdline=tspec_from(1, SEC),
     .priority = 1, .processor = 1,
@@ -47,7 +47,7 @@ int main()
   printf("After setting the parameters: act_flag = %d\n",
 	 tparam.act_flag);
   
-  index = ptask_create_ex(mytask, &tparam);
+  index = ptask_create_param(mytask, &tparam);
   if (index >= 0) printf("Task %d created\n", index);
 
   sleep(2);
