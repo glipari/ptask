@@ -5,6 +5,7 @@ Periodic Real-Time Task interface to pthreads
 
 Version 0.1, April 2013
 Version 0.2, August 2013
+Version 0.3, September 2015
 
 Authors 
 -------
