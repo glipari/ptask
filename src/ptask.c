@@ -68,22 +68,22 @@ static int allocate_tp()
     int x = first_free;
     if (x == _TP_NOMORE) return -1;
     else {
-	pthread_mutex_lock(&_tp_mutex);
-	if (_tp[x].free == _TP_BUSY) { 
-	    pthread_mutex_unlock(&_tp_mutex);
-	    return -1;
-	}
-	first_free = _tp[x].free;
-	_tp[x].free = _TP_BUSY;
+        pthread_mutex_lock(&_tp_mutex);
+        if (_tp[x].free == _TP_BUSY) { 
+            pthread_mutex_unlock(&_tp_mutex);
+            return -1;
+        }
+        first_free = _tp[x].free;
+        _tp[x].free = _TP_BUSY;
 
-	if (ptask_protocol == PRIO_INHERITANCE) 
-	    pmux_create_pi(&_tp[x].mux);
-	else if (ptask_protocol == PRIO_CEILING) 
-	    pmux_create_pc(&_tp[x].mux, 99);
-	else pthread_mutex_init(&_tp[x].mux, 0);
+        if (ptask_protocol == PRIO_INHERITANCE) 
+            pmux_create_pi(&_tp[x].mux);
+        else if (ptask_protocol == PRIO_CEILING) 
+            pmux_create_pc(&_tp[x].mux, 99);
+        else pthread_mutex_init(&_tp[x].mux, 0);
 
-	pthread_mutex_unlock(&_tp_mutex);
-	return x;
+        pthread_mutex_unlock(&_tp_mutex);
+        return x;
     }
 }
 
@@ -130,14 +130,14 @@ static void *ptask_std_body(void *arg)
     
     ptask_idx = pdes->index;
     if (_tp[ptask_idx].measure_flag)
-	tstat_init(ptask_idx);
+        tstat_init(ptask_idx);
 
     pthread_cleanup_push(ptask_exit_handler, 0);
 
     if (_tp[ptask_idx].act_flag == DEFERRED) 
-	ptask_wait_for_activation();
+        ptask_wait_for_activation();
     else
-      clock_gettime(CLOCK_MONOTONIC, &_tp[ptask_idx].at);
+        clock_gettime(CLOCK_MONOTONIC, &_tp[ptask_idx].at);
     
     (*pdes->body)();
         
@@ -151,8 +151,8 @@ static void *ptask_std_body(void *arg)
 /*--------------------------------------------------------------*/
 
 void ptask_init(int policy,
-		global_policy global,
-		sem_protocol protocol)
+                global_policy global,
+                sem_protocol protocol)
 {
     int	i;
 
@@ -163,10 +163,10 @@ void ptask_init(int policy,
 
     /* initialize all private sem with the value 0	*/
     for (i=0; i<MAX_TASKS; i++) {
-	sem_init(&_tsem[i], 0, 0);
-	if (i == MAX_TASKS-1)
-	    _tp[i].free = _TP_NOMORE;
-	else _tp[i].free = i+1;
+        sem_init(&_tsem[i], 0, 0);
+        if (i == MAX_TASKS-1)
+            _tp[i].free = _TP_NOMORE;
+        else _tp[i].free = i+1;
     }
     first_free = 0;
     if (ptask_protocol == PRIO_INHERITANCE) pmux_create_pi(&_tp_mutex);
@@ -197,59 +197,59 @@ static int __create_internal(void (*task)(void), tpars *tp)
     _tp[i].cpu_id = -1; 
 
     if (tp == NULL) {
-	_tp[i].period = tspec_from(1, SEC);
-	_tp[i].deadline = tspec_from(1, SEC);
-	_tp[i].priority = 1;
-	_tp[i].act_flag = DEFERRED;
-	_tp[i].measure_flag = 0;
-	_tp[i].arg = 0;
-	_tp[i].modes = NULL;
+        _tp[i].period = tspec_from(1, SEC);
+        _tp[i].deadline = tspec_from(1, SEC);
+        _tp[i].priority = 1;
+        _tp[i].act_flag = DEFERRED;
+        _tp[i].measure_flag = 0;
+        _tp[i].arg = 0;
+        _tp[i].modes = NULL;
     }
     else {
-	_tp[i].period = tp->period;
-	_tp[i].deadline = tp->rdline;
-	_tp[i].priority = tp->priority;
-	_tp[i].act_flag = tp->act_flag;
-	_tp[i].measure_flag = tp->measure_flag;
-	_tp[i].arg = tp->arg;
-	_tp[i].modes = tp->modes;
-	if (tp->modes != NULL) {
-	    for (j=0; j<tp->nmodes; ++j) { 
-		int result = rtmode_addtask(tp->modes, tp->mode_list[j], i);
-		if (result == 0) {
-		    release_tp(i);
-		    return -1;
-		}
-	    }
-	}
+        _tp[i].period = tp->period;
+        _tp[i].deadline = tp->rdline;
+        _tp[i].priority = tp->priority;
+        _tp[i].act_flag = tp->act_flag;
+        _tp[i].measure_flag = tp->measure_flag;
+        _tp[i].arg = tp->arg;
+        _tp[i].modes = tp->modes;
+        if (tp->modes != NULL) {
+            for (j=0; j<tp->nmodes; ++j) { 
+                int result = rtmode_addtask(tp->modes, tp->mode_list[j], i);
+                if (result == 0) {
+                    release_tp(i);
+                    return -1;
+                }
+            }
+        }
     }
     
     pthread_attr_init(&myatt);
     if (ptask_policy != SCHED_OTHER)
-	pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
+        pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
     pthread_attr_setschedpolicy(&myatt, ptask_policy);
     mypar.sched_priority = _tp[i].priority;
     pthread_attr_setschedparam(&myatt, &mypar);
 
     cpu_set_t cpuset;
     if (ptask_global == PARTITIONED) {
-      CPU_ZERO(&cpuset);
-      CPU_SET(tp->processor, &cpuset);
-      _tp[i].cpu_id = tp->processor;
-      pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
+        CPU_ZERO(&cpuset);
+        CPU_SET(tp->processor, &cpuset);
+        _tp[i].cpu_id = tp->processor;
+        pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
     }
 
     tret = pthread_create(&_tid[i], &myatt, 
-			  ptask_std_body, (void*)(&_tp[i]));
+                          ptask_std_body, (void*)(&_tp[i]));
 
     pthread_attr_destroy(&myatt);
     
     if (tret == 0) {
-      return i;
+        return i;
     }
     else {
-      release_tp(i);
-      return -1;
+        release_tp(i);
+        return -1;
     }  
 }
 
@@ -263,11 +263,10 @@ int ptask_create_param(void (*task)(void), tpars *tp)
 /*  TASK_CREATE: initialize thread parameters and creates a	*/
 /*		 thread						*/
 /*--------------------------------------------------------------*/
-int ptask_create(
-    void (*task)(void),
-    int	period,
-    int	prio,
-    int	aflag)
+int ptask_create(void (*task)(void),
+                 int	period,
+                 int	prio,
+                 int	aflag)
 {
     tpars param = TASK_SPEC_DFL;
     param.period = tspec_from(period, MILLI);
@@ -282,31 +281,31 @@ void ptask_wait_for_period()
 {
     pthread_mutex_lock(&_tp[ptask_idx].mux);
     if (_tp[ptask_idx].measure_flag)
-	tstat_record(ptask_idx);
+        tstat_record(ptask_idx);
     
     if (_tp[ptask_idx].modes != NULL &&
-	!rtmode_taskfind(_tp[ptask_idx].modes, ptask_idx)) {
-	maxsem_post(&_tp[ptask_idx].modes->manager, &_tp[ptask_idx].at);
-	pthread_mutex_unlock(&_tp[ptask_idx].mux);
-	ptask_wait_for_activation();
-	return;
+        !rtmode_taskfind(_tp[ptask_idx].modes, ptask_idx)) {
+        maxsem_post(&_tp[ptask_idx].modes->manager, &_tp[ptask_idx].at);
+        pthread_mutex_unlock(&_tp[ptask_idx].mux);
+        ptask_wait_for_activation();
+        return;
     }
     else {
-	_tp[ptask_idx].state = TASK_WFP;
-	pthread_mutex_unlock(&_tp[ptask_idx].mux);
-	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
-			&(_tp[ptask_idx].at), NULL);
-	pthread_mutex_lock(&_tp[ptask_idx].mux);
-	_tp[ptask_idx].state = TASK_ACTIVE;
-	/* when awaken, update next activation time */
-	_tp[ptask_idx].at = tspec_add(&(_tp[ptask_idx].at),
-				      &_tp[ptask_idx].period);
+        _tp[ptask_idx].state = TASK_WFP;
+        pthread_mutex_unlock(&_tp[ptask_idx].mux);
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
+                        &(_tp[ptask_idx].at), NULL);
+        pthread_mutex_lock(&_tp[ptask_idx].mux);
+        _tp[ptask_idx].state = TASK_ACTIVE;
+        /* when awaken, update next activation time */
+        _tp[ptask_idx].at = tspec_add(&(_tp[ptask_idx].at),
+                                      &_tp[ptask_idx].period);
 	
-	/* update absolute deadline */
-	_tp[ptask_idx].dl = tspec_add(&(_tp[ptask_idx].dl),
-				      &_tp[ptask_idx].period);
-	pthread_mutex_unlock(&_tp[ptask_idx].mux);
-	return;
+        /* update absolute deadline */
+        _tp[ptask_idx].dl = tspec_add(&(_tp[ptask_idx].dl),
+                                      &_tp[ptask_idx].period);
+        pthread_mutex_unlock(&_tp[ptask_idx].mux);
+        return;
     }
 }
 
@@ -323,11 +322,11 @@ void  ptask_wait_for_activation()
     pthread_mutex_lock(&_tp[ptask_idx].mux);
     _tp[ptask_idx].state = TASK_ACTIVE;
     if (_tp[ptask_idx].offset.tv_sec != 0 || _tp[ptask_idx].offset.tv_nsec != 0) {
-	pthread_mutex_unlock(&_tp[ptask_idx].mux);
-	clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
-			&(_tp[ptask_idx].offset), NULL);
-	pthread_mutex_lock(&_tp[ptask_idx].mux);
-	_tp[ptask_idx].offset = tspec_zero;
+        pthread_mutex_unlock(&_tp[ptask_idx].mux);
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME,
+                        &(_tp[ptask_idx].offset), NULL);
+        pthread_mutex_lock(&_tp[ptask_idx].mux);
+        _tp[ptask_idx].offset = tspec_zero;
     }
     pthread_mutex_unlock(&_tp[ptask_idx].mux);
 
@@ -347,12 +346,6 @@ ptask_state ptask_get_state(int i)
     return _tp[i].state;
 }
 
-
-/* void set_activation(const tspec *t) */
-/* { */
-/*     _tp[ptask_idx].at = tspec_add(t, &_tp[ptask_idx].period); */
-/*     _tp[ptask_idx].dl = tspec_add(t, &_tp[ptask_idx].deadline); */
-/* } */
 
 pthread_t ptask_get_threadid(int i)
 {
@@ -477,19 +470,19 @@ int ptask_activate(int i)
     pthread_mutex_lock(&_tp[i].mux);
 
     if (_tp[i].state == TASK_ACTIVE || _tp[i].state == TASK_WFP) {
-	ret = -1;
+        ret = -1;
     }
     else {
-	clock_gettime(CLOCK_MONOTONIC, &t);
+        clock_gettime(CLOCK_MONOTONIC, &t);
 	
-	/* compute the absolute deadline */
-	_tp[i].dl = tspec_add(&t, &_tp[i].deadline);
+        /* compute the absolute deadline */
+        _tp[i].dl = tspec_add(&t, &_tp[i].deadline);
 	
-	/* compute the next activation time */
-	_tp[i].at = tspec_add(&t, &_tp[i].period);
+        /* compute the next activation time */
+        _tp[i].at = tspec_add(&t, &_tp[i].period);
 	
-	/* send the activation signal */
-	sem_post(&_tsem[i]);
+        /* send the activation signal */
+        sem_post(&_tsem[i]);
     }
     pthread_mutex_unlock(&_tp[i].mux);
     return ret;
@@ -503,16 +496,16 @@ int ptask_activate_at(int i, ptime offset)
     pthread_mutex_lock(&_tp[i].mux);
 
     if (_tp[i].state == TASK_ACTIVE || _tp[i].state == TASK_WFP) {
-	ret = -1;
+        ret = -1;
     }
     else {
-	/* compute the absolute deadline */
-	_tp[i].offset = tspec_add(&ptask_t0, &reloff);
-	_tp[i].dl = tspec_add(&_tp[i].offset, &_tp[i].deadline);
-	/* compute the next activation time */
-	_tp[i].at = tspec_add(&_tp[i].offset, &_tp[i].period);
-	/* send the activation signal */
-	sem_post(&_tsem[i]);
+        /* compute the absolute deadline */
+        _tp[i].offset = tspec_add(&ptask_t0, &reloff);
+        _tp[i].dl = tspec_add(&_tp[i].offset, &_tp[i].deadline);
+        /* compute the next activation time */
+        _tp[i].at = tspec_add(&_tp[i].offset, &_tp[i].period);
+        /* send the activation signal */
+        sem_post(&_tsem[i]);
     }	
     pthread_mutex_unlock(&_tp[i].mux);
     return ret;
@@ -524,7 +517,7 @@ int ptask_activate_at(int i, ptime offset)
 int ptask_migrate_to(int i, int core_id) 
 {
     if (core_id >= ptask_num_cores)
-	return -1;
+        return -1;
     
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
@@ -548,7 +541,7 @@ int ptask_getnumcores()
 
 void ptask_syserror(char *f, char *msg)
 {
-  fprintf(stderr, "%s: ", f);
-  fprintf(stderr, "%s \n", msg);
-  exit(-1);
+    fprintf(stderr, "%s: ", f);
+    fprintf(stderr, "%s \n", msg);
+    exit(-1);
 }

@@ -59,7 +59,7 @@
      
     int idx = task_create(body, tipo, periodo, priorità, other_params);
    
-*** TODO parametri addizionali
+*** DONE parametri addizionali
 
     seguire pthread, fare funzioni addizionali per cambiare i parametri
     esempio:
@@ -103,7 +103,7 @@
    quando si sveglia dal semaforo, fa una clock_nanosleep() per vedere
    cosa fare. (serve un ulteriore flag o qualcosa di simile nella task_struct)
 
-** TODO Commentare bene i modi  
+** DONE Commentare bene i modi  
 
 ** TODO add error codes
 

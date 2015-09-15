@@ -110,16 +110,16 @@ void rtmode_changemode(rtmode_t *g, int new_mode_id)
 }
 
 
-int rtmode_taskfind(rtmode_t *g, int id)
+int rtmode_taskfind(rtmode_t *g, int tid)
 {
     int i;
     if (g->curr_mode < 0 || 
-	g->curr_mode >= RTMODE_MAX_MODES) 
-	return 0;
+        g->curr_mode >= RTMODE_MAX_MODES) 
+        return 0;
     
     for (i=0; i<g->modes[g->curr_mode].ntasks; i++) 
-	if (id == g->modes[g->curr_mode].task_list[i]) 
-	    return 1;
+        if (tid == g->modes[g->curr_mode].task_list[i]) 
+            return 1;
 
     return 0;
 }
