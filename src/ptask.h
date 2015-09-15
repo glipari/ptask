@@ -61,8 +61,8 @@ extern const tpars TASK_SPEC_DFL;
 #define ptask_param_priority(p, prio) \
     (p.priority = prio)
 
-#define ptask_param_processor(p, processor) \
-    (p.processor = processor)
+#define ptask_param_processor(p, proc) \
+    (p.processor = proc)
 
 #define ptask_param_activation(p, mode) \
     (p.act_flag = mode)
@@ -70,8 +70,8 @@ extern const tpars TASK_SPEC_DFL;
 #define ptask_param_measure(p) \
     (p.measure_flag = 1)
 
-#define ptask_param_argument(p, arg) \
-    (p.arg = arg)
+#define ptask_param_argument(p, argument) \
+    (p.arg = argument)
 
 #define ptask_param_modes(p, m) \
     (p.modes = &m, p.nmodes = 0)
@@ -129,26 +129,28 @@ int  ptask_create_param(void (*task)(void), tpars *tp);
 void      ptask_wait_for_period();   /*< waits for next period or activation */
 void	  ptask_wait_for_activation(); /*< waits for an exp. activation      */
 int       ptask_get_index();        /*< returns the task own index           */
-int	  ptask_deadline_miss();    /*< true is the task missed its deadline */
+int	      ptask_deadline_miss();    /*< true is the task missed its deadline */
 void *    ptask_get_argument();     /*< returns the task argument            */
 
+ptime     ptask_get_nextactivation(int unit); /*< next act. time of thread   */
+
 /* Global functions on tasks */
-int 	  ptask_activate(int i); /*< activates the task of idx i              */
-int	  ptask_activate_at(int i, ptime off); /*< activates the task of idx i*/
-pthread_t ptask_get_threadid(int i);    /*< returns the thread id of task i   */
-ptask_state ptask_get_state(int i);  /*< return the current task state        */
+int 	  ptask_activate(int i); /*< activates the task of idx i             */
+int	      ptask_activate_at(int i, ptime off); /*< act. the task of idx i    */
+pthread_t ptask_get_threadid(int i);    /*< returns the thread id of task i  */
+ptask_state ptask_get_state(int i);  /*< return the current task state       */
 
 /*----------------------------------------------------------------------------*/
 /*             Dinamically changing parameters                                */
 /*----------------------------------------------------------------------------*/
 
-int	  ptask_get_deadline(int i, int unit); /*< return current rel. deadline */
-void	  ptask_set_deadline(int i, int dline, int unit); /*< set rel. deadline */
+int	      ptask_get_deadline(int i, int unit); /*< return current rel. dead   */
+void	  ptask_set_deadline(int i, int dline, int unit); /*< set rel. dead   */
 
-int	  ptask_get_period(int i, int unit); /*< return current period        */
+int	      ptask_get_period(int i, int unit); /*< return current period        */
 void	  ptask_set_period(int i, int per, int unit); /*< set period          */
 
-int	  ptask_get_priority(int i); /*< return current priority              */
+int	      ptask_get_priority(int i); /*< return current priority              */
 void	  ptask_set_priority(int i, int prio); /*< sets task priority         */
 
 /** Returns the cpuid where the task has been allocated */

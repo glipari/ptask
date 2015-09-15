@@ -50,8 +50,8 @@ static pthread_mutex_t   _tp_mutex; /** this is used to protect the
 					accesses from the main and the 
 					threads */
        sem_t         _tsem[MAX_TASKS];	 /* for task_activate	      */
-       tspec         ptask_t0;	         /* system start time	      */
-       int           ptask_policy;	 /* common scheduling policy   */
+//tspec         ptask_t0;	         /* system start time	      */
+       int           ptask_policy;	     /* common scheduling policy   */
        global_policy ptask_global;       /* global or partitioned      */
        sem_protocol  ptask_protocol;     /* semaphore protocol         */
 static int           ptask_num_cores;    /* number of cores in the system */
@@ -128,6 +128,8 @@ static void *ptask_std_body(void *arg)
 {
     struct task_par *pdes = (struct task_par *)arg;
     
+    tspec t;
+
     ptask_idx = pdes->index;
     if (_tp[ptask_idx].measure_flag)
         tstat_init(ptask_idx);
@@ -136,8 +138,11 @@ static void *ptask_std_body(void *arg)
 
     if (_tp[ptask_idx].act_flag == DEFERRED) 
         ptask_wait_for_activation();
-    else
-        clock_gettime(CLOCK_MONOTONIC, &_tp[ptask_idx].at);
+    else {
+        clock_gettime(CLOCK_MONOTONIC, &t);
+        _tp[ptask_idx].dl = tspec_add(&t, &_tp[ptask_idx].deadline);
+        _tp[ptask_idx].at = tspec_add(&t, &_tp[ptask_idx].period);
+    }
     
     (*pdes->body)();
         
@@ -297,13 +302,14 @@ void ptask_wait_for_period()
                         &(_tp[ptask_idx].at), NULL);
         pthread_mutex_lock(&_tp[ptask_idx].mux);
         _tp[ptask_idx].state = TASK_ACTIVE;
+        /* update absolute deadline */
+        _tp[ptask_idx].dl = tspec_add(&(_tp[ptask_idx].at),
+                                      &_tp[ptask_idx].deadline);
+
         /* when awaken, update next activation time */
         _tp[ptask_idx].at = tspec_add(&(_tp[ptask_idx].at),
                                       &_tp[ptask_idx].period);
 	
-        /* update absolute deadline */
-        _tp[ptask_idx].dl = tspec_add(&(_tp[ptask_idx].dl),
-                                      &_tp[ptask_idx].period);
         pthread_mutex_unlock(&_tp[ptask_idx].mux);
         return;
     }
@@ -389,7 +395,7 @@ int	ptask_get_priority(int i)
     return _tp[i].priority;
 }
 
-void	ptask_set_priority(int i, int prio)
+void ptask_set_priority(int i, int prio)
 {
     struct sched_param  mypar;
     _tp[i].priority = prio;
@@ -399,52 +405,53 @@ void	ptask_set_priority(int i, int prio)
 		       &mypar);
 }
 
-int	task_deadline(int i)
-{
-    return tspec_to(&_tp[i].deadline, MILLI);
-}
+/* int	task_deadline(int i) */
+/* { */
+/*     return tspec_to(&_tp[i].deadline, MILLI); */
+/* } */
 
 /*--------------------------------------------------------------*/
 /*  TASK_ATIME: returns next activation time of task i in ms	*/
 /*--------------------------------------------------------------*/
 
-long	task_atime(int i)
-{
-    long	al;
+/* long	task_atime(int i) */
+/* { */
+/*     long	al; */
 
-    al = _tp[i].at.tv_sec*1000 + _tp[i].at.tv_nsec/1000000;
-    return al;
-}
+/*     al = _tp[i].at.tv_sec*1000 + _tp[i].at.tv_nsec/1000000; */
+/*     return al; */
+/* } */
 
 /*--------------------------------------------------------------*/
 /*  TASK_ABSDL: returns the absolute deadline of task i	in ms	*/
 /*--------------------------------------------------------------*/
 
-long	task_absdl(int i)
-{
-    long	dl;
+/* long	task_absdl(int i) */
+/* { */
+/*     long	dl; */
 
-    dl = _tp[i].dl.tv_sec*1000 + _tp[i].dl.tv_nsec/1000000;
-    return dl;
-}
+/*     dl = _tp[i].dl.tv_sec*1000 + _tp[i].dl.tv_nsec/1000000; */
+/*     return dl; */
+/* } */
 
 /*--------------------------------------------------------------*/
 /*  TASK_SETPERIOD: set the period of task i			*/
 /*--------------------------------------------------------------*/
 
-void	task_setperiod(int i, int per)
-{
-    _tp[i].period = tspec_from(per, MILLI);
-}
+/* void	task_setperiod(int i, int per) */
+/* { */
+/*     _tp[i].period = tspec_from(per, MILLI); */
+/* } */
 
 /*--------------------------------------------------------------*/
 /*  TASK_SETDEADLINE: set the relative deadline of task i	*/
 /*--------------------------------------------------------------*/
 
-void	task_setdeadline(int i, int dline)
-{
-    _tp[i].deadline = tspec_from(dline, MILLI);
-}
+/* void	task_setdeadline(int i, int dline) */
+/* { */
+/*     _tp[i].deadline = tspec_from(dline, MILLI); */
+/* } */
+
 
 /*--------------------------------------------------------------*/
 /*  DEADLINE_MISS: if a deadline is missed increments dmiss	*/
@@ -490,7 +497,8 @@ int ptask_activate(int i)
 
 int ptask_activate_at(int i, ptime offset)
 {
-    struct timespec reloff = tspec_from(offset, MILLI);
+    tspec reloff = tspec_from(offset, MILLI);
+    tspec t;
     int ret = 1;
     
     pthread_mutex_lock(&_tp[i].mux);
@@ -499,8 +507,9 @@ int ptask_activate_at(int i, ptime offset)
         ret = -1;
     }
     else {
+        t = tspec_get_ref();
         /* compute the absolute deadline */
-        _tp[i].offset = tspec_add(&ptask_t0, &reloff);
+        _tp[i].offset = tspec_add(&t, &reloff);
         _tp[i].dl = tspec_add(&_tp[i].offset, &_tp[i].deadline);
         /* compute the next activation time */
         _tp[i].at = tspec_add(&_tp[i].offset, &_tp[i].period);
@@ -509,6 +518,18 @@ int ptask_activate_at(int i, ptime offset)
     }	
     pthread_mutex_unlock(&_tp[i].mux);
     return ret;
+}
+
+
+ptime ptask_get_nextactivation(int unit)
+{
+    ptime at_tmp;
+
+    pthread_mutex_lock(&_tp[ptask_idx].mux);
+    at_tmp = tspec_to(&_tp[ptask_idx].at, unit);
+    pthread_mutex_unlock(&_tp[ptask_idx].mux);
+
+    return at_tmp;
 }
 
 
