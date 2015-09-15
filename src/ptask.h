@@ -73,11 +73,11 @@ extern const tpars TASK_SPEC_DFL;
 #define ptask_param_argument(p, arg) \
     (p.arg = arg)
 
-#define ptask_param_modes(p, modes, nmodes) \
-    (p->modes = modes, p->nmodes = nmodes)
+#define ptask_param_modes(p, m) \
+    (p.modes = &m, p.nmodes = 0)
 
-#define ptask_param_mode_add(p, n, mode_num) \
-    (p->mode_list[n] = mode_num)
+#define ptask_param_mode_add(p, mode_num) \
+    (p.mode_list[ p.nmodes++ ] = mode_num)
 
 
 /* ------------------------------------------------------------------ */

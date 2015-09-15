@@ -30,21 +30,21 @@ int main()
     ptask_param_period(param, 1, SEC);    // param.period = tspec_from(1, SEC);
     ptask_param_deadline(param, 1, SEC);  //param.rdline = param.period;
     ptask_param_priority(param, 4);       // param.priority = 4;
-    ptask_param_modes(param, mymodes, 2); // param.modes = &mymodes;
-                                          // param.nmodes = 2;
-    ptask_param_mode_add(param, 0, MODE_ON);   //param.mode_list[0] = MODE_ON;
-    ptask_param_mode_add(param, 1, MODE_FAIL); //param.mode_list[1] = MODE_FAIL;
+    ptask_param_modes(param, mymodes);    // param.modes = &mymodes;
+                                          // param.nmodes = 0;
+    ptask_param_mode_add(param, MODE_ON);   //param.mode_list[0] = MODE_ON;
+    ptask_param_mode_add(param, MODE_FAIL); //param.mode_list[1] = MODE_FAIL;
     res = ptask_create_param(taskbody, &param);
 
     printf("Creation of first task: %d\n", res);
   
-    ptask_param_init(param);   // param = TASK_SPEC_DFL;
+    ptask_param_init(param);              // param = TASK_SPEC_DFL;
     ptask_param_period(param, 2, SEC);    // param.period = tspec_from(2, SEC);
     ptask_param_deadline(param, 2, SEC);  //param.rdline = param.period;
     ptask_param_priority(param, 3);       // param.priority = 3;
-    ptask_param_modes(param, mymodes, 1); // param.modes = &mymodes;
-                                          // param.nmodes = 1;
-    ptask_param_mode_add(param, 0, MODE_ON);   //param.mode_list[0] = MODE_ON;
+    ptask_param_modes(param, mymodes);    // param.modes = &mymodes;
+                                          // param.nmodes = 0;
+    ptask_param_mode_add(param, MODE_ON); //param.mode_list[0] = MODE_ON;
     res = ptask_create_param(taskbody, &param);
     
     printf("Creation of second task: %d\n", res);
@@ -52,10 +52,10 @@ int main()
     ptask_param_init(param);   // param = TASK_SPEC_DFL;
     ptask_param_period(param, 500, MILLI);    // param.period = tspec_from(500, MILLI);
     ptask_param_deadline(param, 500, MILLI);  //param.rdline = param.period;
-    ptask_param_priority(param, 5);       // param.priority = 5;
-    ptask_param_modes(param, mymodes, 1); // param.modes = &mymodes;
-                                          // param.nmodes = 1;
-    ptask_param_mode_add(param, 0, MODE_FAIL);   //param.mode_list[0] = MODE_FAIL;
+    ptask_param_priority(param, 5);           // param.priority = 5;
+    ptask_param_modes(param, mymodes);        // param.modes = &mymodes;
+                                              // param.nmodes = 1;
+    ptask_param_mode_add(param, MODE_FAIL);   //param.mode_list[0] = MODE_FAIL;
     res = ptask_create_param(taskbody, &param);
     
     printf("Creation of third task: %d\n", res);
