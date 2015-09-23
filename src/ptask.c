@@ -9,13 +9,13 @@
 
 struct task_par {
     void * arg;         /* task argument                */
-    int   index;	/* task index		        */
-    tspec period;	/* task period 	                */
-    tspec deadline;	/* relative deadline 	        */
-    int	  priority;	/* task priority in [0,99]	*/
-    int   dmiss;	/* number of deadline misses	*/
-    tspec at;		/* next activation time		*/
-    tspec dl;		/* current absolute deadline	*/
+    int   index;	    /* task index                   */
+    tspec period;       /* task period 	                */
+    tspec deadline;	    /* relative deadline 	        */
+    int	  priority;	    /* task priority in [0,99]	    */
+    int   dmiss;	    /* number of deadline misses  	*/
+    tspec at;		    /* next activation time	     	*/
+    tspec dl;		    /* current absolute deadline	*/
     tspec offset;       /* offset from activation time  */
     void (*body)(void); /* the actual body of the task  */
     int  free;          /* >=0 if this descr is avail.  */
@@ -50,7 +50,6 @@ static pthread_mutex_t   _tp_mutex; /** this is used to protect the
 					accesses from the main and the 
 					threads */
        sem_t         _tsem[MAX_TASKS];	 /* for task_activate	      */
-//tspec         ptask_t0;	         /* system start time	      */
        int           ptask_policy;	     /* common scheduling policy   */
        global_policy ptask_global;       /* global or partitioned      */
        sem_protocol  ptask_protocol;     /* semaphore protocol         */
