@@ -27,7 +27,7 @@ Currently it provides:
 - A simple API for group scheduling and synchronization;
 - An API for mode changes. 
 
-A manual is available in ptask_manual.pdf
+A manual is available in `docs/ptask_manual_x.x.pdf`
 
 ------------------------------------------------------------------
 

@@ -64,3 +64,15 @@
     > pcp: pthread_mutex_lock.c:459: __pthread_mutex_lock_full: Assertion `mutex->__data.__owner == 0' failed.
     > Aborted (core dumped)
 
+
+
+* Version 0.3
+
+** Changes wrt to version 0.2
+   - Solved many bugs related to macros
+   - Changed the interface for ptask_param_add_mode()
+   
+
+** Known issues
+
+   Crashes on exit of pcp.c is still there. 
