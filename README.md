@@ -12,6 +12,10 @@ Periodic Real-Time Task interface to pthreads
 * Giorgio Buttazzo (g.buttazzo@sssup.it)
 * Giuseppe Lipari  (g.lipari@sssup.it)
 
+## Contributors
+
+* Alessio Balsini (a.balsini@sssup.it)
+
 License: GPL 3.0
 
 ----
@@ -33,29 +37,43 @@ A manual is available in `docs/ptask_manual_x.x.pdf`.
 ----
 ## Instructions
 
-To compile the library the first time, enter into directory `src/` and type:
+### Prerequisites
+
+* Allegro 4 libraries
+* CMake 3.1+
+
+### Compiling
+
+To compile the library the first time, enter the main `ptask` folder
+(from now identified with `ptask/`) and type:
 
 ```
-make depend; make
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
 ```
 
-this produces the library file `libptask.a`, that must be included into your
-projects.
+this produces the library file `ptask/build/src/libptask.a`, that must be
+included into your projects.
 
-To compile the examples, use the same procedure in directory `examples/`.
-Before running the examples, remember to become **super-user**, otherwise
-Linux will not allow you to create real-time tasks!
+This also compiles all the:
+* **examples** (`ptask/build/src/examples`);
+* **tests** (`ptask/build/src/tests`).
 
-To compile the tests, enter directory `test/` and once again run 
+Before running the examples or tests, remember to become **super-user**, in order to 
+obtain the privileges to create real-time tasks!
 
-```
-make depend; make
-```
-
-To run the tests, just execute the script
+To run the tests, execute the script
 
 ```
-./runtest.sh
+$ ptask/build/src/tests/runtest.sh
+```
+
+or, from the `ptask/build/` directory, run
+
+```
+$ sudo make test
 ```
 
 Happy programming!
