@@ -26,7 +26,7 @@
 #define XMAX	600		/* max position Y of the ball	*/
 #define VELX	15.		/* horizontal ball velocity	*/
 #define VMIN    11.		/* velocità minima per suono    */
-#define PER	20		/* task period in ms		*/
+#define PER	    20		/* task period in ms		*/
 #define DREL	20		/* realtive deadline in ms	*/
 #define PRIO	80		/* task priority		*/
 
@@ -161,89 +161,89 @@ int	main(void)
 
     i = 0;
     do {
-	k = 0;
-	if (keypressed()) {
-	    c = readkey();
-	    k = c >> 8;
-	}
+        k = 0;
+        if (keypressed()) {
+            c = readkey();
+            k = c >> 8;
+        }
 
-	if ((ntasks == 0) && (k == KEY_SPACE)) {
-	    clear_to_color(screen, BGC);
-	    rect(screen, XMIN-L-1,BASE-1,XMAX+L+1,TOP+BASE+L+1,14);
-	}
+        if ((ntasks == 0) && (k == KEY_SPACE)) {
+            clear_to_color(screen, BGC);
+            rect(screen, XMIN-L-1,BASE-1,XMAX+L+1,TOP+BASE+L+1,14);
+        }
 
-	if ((ntasks < MAX_TASKS) && (k == KEY_SPACE)) {
-	    tpars params = TASK_SPEC_DFL;
-	    params.period = tspec_from(PER, MILLI);
-	    params.rdline = tspec_from(DREL, MILLI);
-	    params.priority = PRIO-i;
-	    params.measure_flag = 1;
-	    params.act_flag = NOW;
-	    /* a round robin assignment */
-	    params.processor = last_proc++;
-	    if (last_proc >= max_proc) last_proc = 0;
+        if ((ntasks < MAX_TASKS) && (k == KEY_SPACE)) {
+            tpars params = TASK_SPEC_DFL;
+            params.period = tspec_from(PER, MILLI);
+            params.rdline = tspec_from(DREL, MILLI);
+            params.priority = PRIO-i;
+            params.measure_flag = 1;
+            params.act_flag = NOW;
+            /* a round robin assignment */
+            params.processor = last_proc++;
+            if (last_proc >= max_proc) last_proc = 0;
 
-	    /** i = task_create(palla, PER, DREL, PRIO-i, NOW); */
-	    i = ptask_create_param(palla, &params);
-	    if (i != -1) {
-		printf("Task %d created and activated\n", i);
-		ntasks++;
-	    }
-	    else {
-		allegro_exit();
-	        printf("Error in creating task!\n");
-		exit(-1);
-	    }
-	}
+            /** i = task_create(palla, PER, DREL, PRIO-i, NOW); */
+            i = ptask_create_param(palla, &params);
+            if (i != -1) {
+                printf("Task %d created and activated\n", i);
+                ntasks++;
+            }
+            else {
+                allegro_exit();
+                printf("Error in creating task!\n");
+                exit(-1);
+            }
+        }
 
-	if ((k >= KEY_0) && (k <= KEY_9)) {
-	    a = 2. * G * (float)TOP;
-	    pthread_mutex_lock(&mxv);
-	    v0[k - KEY_0] = sqrt(a);
-	    pthread_mutex_unlock(&mxv);
-	}
+        if ((k >= KEY_0) && (k <= KEY_9)) {
+            a = 2. * G * (float)TOP;
+            pthread_mutex_lock(&mxv);
+            v0[k - KEY_0] = sqrt(a);
+            pthread_mutex_unlock(&mxv);
+        }
 
-	if ((k == KEY_O) && (ntasks > 9)) {
-	    for (j=10; j<ntasks; j++) {
-		h = rand()%(TOP-BASE);
-		a = 2. * G * (float)h;
-		pthread_mutex_lock(&mxv);
-		v0[j] = sqrt(a);
-		pthread_mutex_unlock(&mxv);
-	    }
-	}
+        if ((k == KEY_O) && (ntasks > 9)) {
+            for (j=10; j<ntasks; j++) {
+                h = rand()%(TOP-BASE);
+                a = 2. * G * (float)h;
+                pthread_mutex_lock(&mxv);
+                v0[j] = sqrt(a);
+                pthread_mutex_unlock(&mxv);
+            }
+        }
 
-	if (k == KEY_A) {
-	    for (j=0; j<ntasks; j++) {
-		h = rand()%(TOP-BASE);
-		a = 2. * G * (float)h;
-		pthread_mutex_lock(&mxv);
-		v0[j] = sqrt(a);
-		pthread_mutex_unlock(&mxv);
-	    }
-	}
+        if (k == KEY_A) {
+            for (j=0; j<ntasks; j++) {
+                h = rand()%(TOP-BASE);
+                a = 2. * G * (float)h;
+                pthread_mutex_lock(&mxv);
+                v0[j] = sqrt(a);
+                pthread_mutex_unlock(&mxv);
+            }
+        }
 
-	/*
-	  Printing deadline misses
-	  TO BE DONE 
-	for (j=0; j<ntasks; j++) {
-	    sprintf(s, "%d", task_dmiss(j));
-	    textout_ex(screen, font, s, 50+j*48, 450, 7, 0);
-	}
-	*/
+        /*
+          Printing deadline misses
+          TO BE DONE 
+          for (j=0; j<ntasks; j++) {
+          sprintf(s, "%d", task_dmiss(j));
+          textout_ex(screen, font, s, 50+j*48, 450, 7, 0);
+          }
+        */
 
     } while (k != KEY_ESC);
     
     printf("Now printing the stats\n");
     for (j=0; j<ntasks; j++) {
-	tspec wcet = ptask_get_wcet(j);
-	tspec acet = ptask_get_avg(j);
+        tspec wcet = ptask_get_wcet(j);
+        tspec acet = ptask_get_avg(j);
 
-	printf("TASK %d: WCET = %ld\t ACET = %ld\t NINST=%d\n", 
-	       j, 
-	       tspec_to(&wcet, MICRO), 
-	       tspec_to(&acet, MICRO), 
-	       ptask_get_numinstances(j)); 
+        printf("TASK %d: WCET = %ld\t ACET = %ld\t NINST=%d\n", 
+               j, 
+               tspec_to(&wcet, MICRO), 
+               tspec_to(&acet, MICRO), 
+               ptask_get_numinstances(j)); 
     }
     
     printf("End of statistics\n");

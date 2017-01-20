@@ -33,14 +33,14 @@ void task_body()
 
     tspec temp = tspec_add_delta(&st, ptask_get_period(i, MILLI), MILLI);
     printf("[TASK %d] start_time should be %ld\n", i,
-	   tspec_to_rel(&temp, MILLI));
+           tspec_to_rel(&temp, MILLI));
     
 
     while (1) {
-	long now = ptask_gettime(MILLI); 
-	printf("[TASK %d] Starting Cycle at time %ld\n", i, now);
-	for (k=0; k<1000000; ++k);
-	ptask_wait_for_period();
+        long now = ptask_gettime(MILLI); 
+        printf("[TASK %d] Starting Cycle at time %ld\n", i, now);
+        for (k=0; k<1000000; ++k);
+        ptask_wait_for_period();
     }
 }
 
@@ -53,25 +53,25 @@ int main()
     pbarrier_init(&barrier, NTASKS+1);
   
     for (i=0; i<NTASKS; i++) 
-	offset[i] = tspec_from(i, SEC);
+        offset[i] = tspec_from(i, SEC);
 
     for (i=0; i<NTASKS; i++) {
-	ret = ptask_create(task_body,
-			   (i+1)*1000, 
-			   NTASKS + 1 - i, 
-			   NOW);
-	printf("ret = %d \n", ret);
+        ret = ptask_create(task_body,
+                           (i+1)*1000, 
+                           NTASKS + 1 - i, 
+                           NOW);
+        printf("ret = %d \n", ret);
     }
   
   
     // now all tasks have been creates, I am ready to start
-    printf("Press a key and enter to start all tasks\n");
+    printf("Press enter to start all tasks\n");
 
     getchar();
-
+    
     pbarrier_wait(&barrier, 0);
 
-    printf("All tasks have started, now press a key + enter to finish");
+    printf("All tasks have started, now press enter to finish\n");
     getchar();
 
     return 0;
