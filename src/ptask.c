@@ -10,6 +10,7 @@
 struct task_par {
     void * arg;         /* task argument                */
     int   index;	    /* task index                   */
+    tspec runtime;      /* task runtime */
     tspec period;       /* task period 	                */
     tspec deadline;	    /* relative deadline 	        */
     int	  priority;	    /* task priority in [0,99]	    */
@@ -28,6 +29,7 @@ struct task_par {
 };
 
 const tpars TASK_SPEC_DFL = {
+    .runtime = {1, 0},
     .period = {1, 0},  
     .rdline = {1, 0},
     .priority = 1, 
@@ -142,6 +144,17 @@ static void *ptask_std_body(void *arg)
         _tp[ptask_idx].dl = tspec_add(&t, &_tp[ptask_idx].deadline);
         _tp[ptask_idx].at = tspec_add(&t, &_tp[ptask_idx].period);
     }
+
+    if (ptask_policy == SCHED_DEADLINE) {
+        struct sched_attr attr;
+        attr.size = sizeof(attr);
+        attr.sched_policy = SCHED_DEADLINE;
+        attr.sched_flags = SCHED_FLAG_RESET_ON_FORK;
+        attr.sched_runtime = (int)tspec_to(&(_tp[ptask_idx].runtime), NANO);
+        attr.sched_period = (int)tspec_to(&_tp[ptask_idx].period, NANO);
+        attr.sched_deadline = (int)tspec_to(&_tp[ptask_idx].deadline, NANO);
+        sched_setattr(gettid(), &attr, 0);
+    }
     
     (*pdes->body)();
         
@@ -201,6 +214,7 @@ static int __create_internal(void (*task)(void), tpars *tp)
     _tp[i].cpu_id = -1; 
 
     if (tp == NULL) {
+        _tp[i].runtime = tspec_from(1, SEC);
         _tp[i].period = tspec_from(1, SEC);
         _tp[i].deadline = tspec_from(1, SEC);
         _tp[i].priority = 1;
@@ -210,6 +224,7 @@ static int __create_internal(void (*task)(void), tpars *tp)
         _tp[i].modes = NULL;
     }
     else {
+        _tp[i].runtime = tp->runtime;
         _tp[i].period = tp->period;
         _tp[i].deadline = tp->rdline;
         _tp[i].priority = tp->priority;
@@ -231,9 +246,11 @@ static int __create_internal(void (*task)(void), tpars *tp)
     pthread_attr_init(&myatt);
     if (ptask_policy != SCHED_OTHER)
         pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
-    pthread_attr_setschedpolicy(&myatt, ptask_policy);
-    mypar.sched_priority = _tp[i].priority;
-    pthread_attr_setschedparam(&myatt, &mypar);
+    if (ptask_policy != SCHED_DEADLINE) {
+        pthread_attr_setschedpolicy(&myatt, ptask_policy);
+        mypar.sched_priority = _tp[i].priority;
+        pthread_attr_setschedparam(&myatt, &mypar);
+    }
 
     cpu_set_t cpuset;
     if (ptask_global == PARTITIONED) {
@@ -272,10 +289,33 @@ int ptask_create(void (*task)(void),
                  int	prio,
                  int	aflag)
 {
+    return ptask_create_prio(task, period, prio, aflag);
+}
+
+int ptask_create_prio(void (*task)(void),
+                      int    period,
+                      int    prio,
+                      int    aflag)
+{
     tpars param = TASK_SPEC_DFL;
     param.period = tspec_from(period, MILLI);
     param.rdline = tspec_from(period, MILLI);
     param.priority = prio;
+    param.act_flag = aflag;
+
+    return __create_internal(task, &param);
+}
+
+int ptask_create_edf(void (*task)(void),
+                     int period,
+                     int runtime,
+                     int dline,
+                     int aflag)
+{
+    tpars param = TASK_SPEC_DFL;
+    param.period = tspec_from(period, MILLI);
+    param.runtime = tspec_from(runtime, MILLI);
+    param.rdline = tspec_from(dline, MILLI);
     param.act_flag = aflag;
 
     return __create_internal(task, &param);
