@@ -10,6 +10,7 @@ add_executable(test_cores test_cores.c)
 add_executable(task_create task_create.c)
 add_executable(task_aperiodic task_aperiodic.c)
 add_executable(wcet_calibration wcet_calibration.c)
+add_executable(test_edf test_edf.c calibrate.c)
 
 # Indicate that ptask library dependency
 target_link_libraries(time ptask)
@@ -19,6 +20,7 @@ target_link_libraries(test_cores ptask Threads::Threads)
 target_link_libraries(task_create ptask Threads::Threads)
 target_link_libraries(task_aperiodic ptask Threads::Threads)
 target_link_libraries(wcet_calibration ptask Threads::Threads)
+target_link_libraries(test_edf ptask Threads::Threads)
 
 # Create tests from executables
 add_test(timeTest time)
@@ -28,6 +30,6 @@ add_test(key_optTest key_opt)
 add_test(test_coresTest test_cores)
 add_test(task_createTest task_create)
 add_test(task_aperiodicTest task_aperiodic)
-add_test(wcet_calibrationTest wcet_calibration)
+add_test(test_edfTest test_edf)
 
 file(COPY runtest.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

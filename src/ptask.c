@@ -153,7 +153,10 @@ static void *ptask_std_body(void *arg)
         attr.sched_runtime = (int)tspec_to(&(_tp[ptask_idx].runtime), NANO);
         attr.sched_period = (int)tspec_to(&_tp[ptask_idx].period, NANO);
         attr.sched_deadline = (int)tspec_to(&_tp[ptask_idx].deadline, NANO);
-        sched_setattr(gettid(), &attr, 0);
+        if (sched_setattr(gettid(), &attr, 0) != 0) {
+            printf("ERROR in setting sched_deadline parameters!\n");
+            perror("Error:");
+        }
     }
     
     (*pdes->body)();
@@ -246,12 +249,13 @@ static int __create_internal(void (*task)(void), tpars *tp)
     pthread_attr_init(&myatt);
     if (ptask_policy != SCHED_OTHER)
         pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
+
     if (ptask_policy != SCHED_DEADLINE) {
         pthread_attr_setschedpolicy(&myatt, ptask_policy);
         mypar.sched_priority = _tp[i].priority;
         pthread_attr_setschedparam(&myatt, &mypar);
-    }
-
+    } else pthread_attr_setschedpolicy(&myatt, SCHED_OTHER);
+    
     cpu_set_t cpuset;
     if (ptask_global == PARTITIONED) {
         CPU_ZERO(&cpuset);
@@ -271,7 +275,7 @@ static int __create_internal(void (*task)(void), tpars *tp)
     else {
         release_tp(i);
         return -1;
-    }  
+    }
 }
 
 int ptask_create_param(void (*task)(void), tpars *tp)
