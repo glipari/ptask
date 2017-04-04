@@ -9,6 +9,8 @@
 #include <semaphore.h>
 #include <ptime.h>
 #include <rtmode.h>
+#include <linux/sched.h>
+#include "libdl.h"
 
 /*--------------------------------------------------------------*/
 
@@ -30,6 +32,7 @@ typedef void ptask;
    setting standard arguments
  */
 typedef struct {
+    tspec runtime;
     tspec period; 
     tspec rdline;
     int priority;              /*< from 0 to 99                         */
@@ -86,6 +89,7 @@ extern const tpars TASK_SPEC_DFL;
 int  ptask_getnumcores(); /*< returns the number of available cores   */
 
 /** The following function initializes the library. The policy can be:
+    - SCHED_DEADLINE  based on the Earliest Deadline First (EDF)
     - SCHED_FIFO      fixed priority, fifo for same priority tasks
     - SCHED_RR        fixed priority, round robin for same priority tasks 
     - SCHED_OTHER     classical Linux scheduling policy (background) 
@@ -113,9 +117,23 @@ void  ptask_syserror(char *fun, char *msg);
 /*----------------------------------------------------------------------*/
 /** 
     Creates a task with a certain task body, a period, a priority and an
-    activation flag */
+    activation flag
+    Deprecated : Use the function ptask_create_prio instead */
 int  ptask_create(void (*task)(void),
-		  int period, int prio, int aflag);
+		  int period, int prio, int aflag)
+                  __attribute__ ((deprecated));
+
+/** 
+    Creates a task with a certain task body, a period, a priority and an
+    activation flag */
+int  ptask_create_prio(void (*task)(void),
+                       int period, int prio, int aflag);
+
+/**
+    Creates a task for SCHED_DEADLINE with a certain task body, a period,
+    a runtime, a deadline and an activation flag */
+int  ptask_create_edf(void (*task)(void),
+                      int period, int runtime, int dline, int aflag);
 
 /** 
     Creates a task with a set of parameters. If tp is NULL, by default 
