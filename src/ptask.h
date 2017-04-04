@@ -10,7 +10,7 @@
 #include <ptime.h>
 #include <rtmode.h>
 #include <linux/sched.h>
-#include "libdl.h"
+#include <libdl.h>
 
 /*--------------------------------------------------------------*/
 
