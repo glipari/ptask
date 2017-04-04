@@ -70,18 +70,18 @@ void draw_ball(int x, int y, int c)
 
 void	palla()
 {
-int	i, col, dcol=0;	/* indice del task  */
-int	x, y;		/* coordinate grafiche pallina  */
-int	ox, oy;		/* vecchia posizione pallina    */
-int	x0;		/* posizione iniziale X pallina */
-float	vx, vy;		/* velocità della pallina   */
-float	t, tx;		/* variabile temporale      */
-//float	z, z0;		/* posizione della pallina  */
-float	dt;		/* incremento temporale     */
-double	a;		/* variabile di appoggio    */
-//long	j, k;
+    int	i, col, dcol=0;	/* indice del task  */
+    int	x, y;		/* coordinate grafiche pallina  */
+    int	ox, oy;		/* vecchia posizione pallina    */
+    int	x0;		/* posizione iniziale X pallina */
+    float	vx, vy;		/* velocità della pallina   */
+    float	t, tx;		/* variabile temporale      */
+    //float	z, z0;		/* posizione della pallina  */
+    float	dt;		/* incremento temporale     */
+    double	a;		/* variabile di appoggio    */
+    //long	j, k;
 
-        i = ptask_get_index();
+    i = ptask_get_index();
 	col = 2 + i%14;
 	y = oy = (TOP-L);
 	x = ox = x0 = XMIN;
@@ -97,9 +97,9 @@ double	a;		/* variabile di appoggio    */
 	// wait_for_activation();
 
 	while (1) {
-        	x = x0 + vx * tx;
-	        y = BASE + vy*t - .5*G*t*t;
-	        if (y < BASE) {
+        x = x0 + vx * tx;
+        y = BASE + vy*t - .5*G*t*t;
+        if (y < BASE) {
 			t = 0.0;
 			pthread_mutex_lock(&mxv);
 			v0[i] = .9 * v0[i];

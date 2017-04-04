@@ -17,7 +17,7 @@
 
 /* activation flag for task_create */
 #define	DEFERRED	0
-#define	NOW		1
+#define	NOW		    1
 
 typedef enum {PARTITIONED, GLOBAL} global_policy;
 typedef enum {PRIO_INHERITANCE, PRIO_CEILING, NO_PROTOCOL} sem_protocol;
@@ -99,8 +99,8 @@ int  ptask_getnumcores(); /*< returns the number of available cores   */
     - PRIO_CEILING
 */ 
 void  ptask_init(int policy,
-		 global_policy global, 
-		 sem_protocol protocol); 
+                 global_policy global, 
+                 sem_protocol protocol); 
 
 /** Prints an error message on stderr and exits. The first string
     should contain the name of the failing function, the second string
