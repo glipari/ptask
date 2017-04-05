@@ -542,9 +542,9 @@ int ptask_activate(int i)
     return ret;
 }
 
-int ptask_activate_at(int i, ptime offset)
+int ptask_activate_at(int i, ptime offset, int unit)
 {
-    tspec reloff = tspec_from(offset, MILLI);
+    tspec reloff = tspec_from(offset, unit);
     tspec t;
     int ret = 1;
     
@@ -554,7 +554,7 @@ int ptask_activate_at(int i, ptime offset)
         ret = -1;
     }
     else {
-         t = tspec_get_ref();
+        t = tspec_get_ref();
         /* compute the absolute deadline */
         _tp[i].offset = tspec_add(&t, &reloff);
         _tp[i].dl = tspec_add(&_tp[i].offset, &_tp[i].deadline);

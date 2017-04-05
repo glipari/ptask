@@ -154,7 +154,7 @@ ptime     ptask_get_nextactivation(int unit); /*< next act. time of thread   */
 
 /* Global functions on tasks */
 int 	  ptask_activate(int i); /*< activates the task of idx i             */
-int	      ptask_activate_at(int i, ptime off); /*< act. the task of idx i    */
+int	      ptask_activate_at(int i, ptime off, int unit); /*< act. at offset  */
 pthread_t ptask_get_threadid(int i);    /*< returns the thread id of task i  */
 ptask_state ptask_get_state(int i);  /*< return the current task state       */
 

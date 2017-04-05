@@ -62,19 +62,19 @@ int trace_exec(int idx)
 void body()
 {
     int idx = ptask_get_index();
-    //tspec off = tspec_from(offsets[idx], MILLI);
-    
-    //pbarrier_wait(&barrier, &off);
-    //ptask_wait_for_activation();
     
     for (int i=0; i<njobs[idx]; i++) {
-        fprintf(stdout, "Task %i : starting job %d at time %ld, next act at time %ld\n", idx, i, ptask_gettime(MILLI), ptask_get_nextactivation(MILLI));
+        fprintf(stdout, "Task %i : starting job %d at time %ld, next act at time %ld\n",
+                idx, i, ptask_gettime(MILLI), ptask_get_nextactivation(MILLI));
+        fflush(stdout);
         WORK(wcet[idx] * iter_milli);
-        // here we check that everything is ok
-        fprintf(stdout, "Task %i : finish   job %d at time %ld\n", idx, i, ptask_gettime(MILLI));
-        assert(trace_exec(idx));
+        fprintf(stdout, "Task %i : finish   job %d at time %ld\n",
+                idx, i, ptask_gettime(MILLI));
+        fflush(stdout);
+        assert(trace_exec(idx));          // here we check that everything is ok
         ptask_wait_for_period();
     }
+    // signal task completion
     gsem_post(&sem);
 }
 
@@ -84,7 +84,6 @@ int main()
     
     ptask_init(SCHED_DEADLINE, PARTITIONED, PRIO_INHERITANCE);
     gsem_init(&sem);
-    //pbarrier_init(&barrier, 3);
     iter_milli = calibrate();
 
     for (int i=0; i<3; i++) {
@@ -102,12 +101,13 @@ int main()
         }
     }
     printf("All task created correctly\n");
-    sleep(1);
-    printf("Now activating\n");
-    
-    for (int i=0; i<3; i++) {
-        ptask_activate_at(i, offsets[i]);
+
+    ptime now = ptask_gettime(MILLI);
+    for (int i=0; i<3; i++) {   
+        ptime offt = offsets[i] + now; 
+        ptask_activate_at(i, offt, MILLI);
     }
+    printf("All task activated, waiting for termination\n");
     
     gsem_wait(&sem, 3);
     // the task have completed, success!

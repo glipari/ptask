@@ -250,7 +250,7 @@ void	gen()
 	  params.processor = 0;
 	  j = ptask_create_param(task, &params);
 	  if (j < 0) ptask_syserror("gen()", "error in creating task");
-	  ptask_activate_at(j,offset[i]);
+	  ptask_activate_at(j,offset[i], MILLI);
     }  	
 	
 }

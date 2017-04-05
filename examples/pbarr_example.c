@@ -29,8 +29,6 @@ void task_body()
     printf("[TASK %d] Now can start! at time %ld\n", 
      	   i, tspec_to_rel(&st, MILLI)); 
 
-    //ptask_activate_at(i,st);
-
     tspec temp = tspec_add_delta(&st, ptask_get_period(i, MILLI), MILLI);
     printf("[TASK %d] start_time should be %ld\n", i,
            tspec_to_rel(&temp, MILLI));

@@ -99,7 +99,7 @@ int	main(void)
             pthread_mutex_unlock(&mxa);
             id = ptask_create(periodicLine_testSystemTaskOFFSET, PER, priority[i], act_flag);
             printf("act_flag = %d, id = %d, v_offset[%d] = %ld\n", act_flag, id+1, id, v_offset[id]);
-            ret = ptask_activate_at(id, v_offset[i]);
+            ret = ptask_activate_at(id, v_offset[i], MILLI);
 
             if (ret != -1) {
                 draw_activation (ntasks, i, priority[i], false);
