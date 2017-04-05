@@ -150,7 +150,7 @@ static void *ptask_std_body(void *arg)
             perror("Error:");
             return 0;
         }
-        printf("SCHED_DEADLINE correctly set\n");
+        //printf("SCHED_DEADLINE correctly set\n");
     }
 
     if (_tp[ptask_idx].act_flag == DEFERRED) 
@@ -371,7 +371,9 @@ void  ptask_wait_for_activation()
 {
     /* suspend on a private semaphore */
     _tp[ptask_idx].state = TASK_SUSPENDED;
+    //printf("before sem_wait on task %d\n", ptask_idx);
     sem_wait(&_tsem[ptask_idx]);
+    //printf("after sem_wait on task %d\n", ptask_idx);
     pthread_mutex_lock(&_tp[ptask_idx].mux);
     _tp[ptask_idx].state = TASK_ACTIVE;
     if (_tp[ptask_idx].offset.tv_sec != 0 || _tp[ptask_idx].offset.tv_nsec != 0) {
@@ -550,7 +552,8 @@ int ptask_activate_at(int i, ptime offset, int unit)
     
     pthread_mutex_lock(&_tp[i].mux);
 
-    if (_tp[i].state == TASK_ACTIVE || _tp[i].state == TASK_WFP) {
+    /* if (_tp[i].state == TASK_ACTIVE || _tp[i].state == TASK_WFP) { */
+    if (_tp[i].state == TASK_WFP) {
         ret = -1;
     }
     else {
@@ -562,6 +565,7 @@ int ptask_activate_at(int i, ptime offset, int unit)
         _tp[i].at = tspec_add(&_tp[i].offset, &_tp[i].period);
         /* send the activation signal */
         sem_post(&_tsem[i]);
+        //printf("sem_post done on task %d\n", i);
     }	
     pthread_mutex_unlock(&_tp[i].mux);
     return ret;

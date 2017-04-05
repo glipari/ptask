@@ -83,6 +83,7 @@ int main()
     tpars p;
     
     ptask_init(SCHED_DEADLINE, PARTITIONED, PRIO_INHERITANCE);
+
     gsem_init(&sem);
     iter_milli = calibrate();
 
@@ -105,7 +106,10 @@ int main()
     ptime now = ptask_gettime(MILLI);
     for (int i=0; i<3; i++) {   
         ptime offt = offsets[i] + now; 
-        ptask_activate_at(i, offt, MILLI);
+        int r = ptask_activate_at(i, offt, MILLI);
+        if (r < 0) {
+            printf("Could not activate task %d\n", i);
+        }
     }
     printf("All task activated, waiting for termination\n");
     
