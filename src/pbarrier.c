@@ -23,8 +23,8 @@ tspec pbarrier_wait(pbarrier_t *pb, tspec *offset)
         clock_gettime(CLOCK_MONOTONIC, &pb->reference);
         pthread_cond_broadcast(&pb->c);
         pb->arrived = 0;
-        printf("Last arrived\n");
-        fflush(stdout);
+        //printf("Last arrived\n");
+        //fflush(stdout);
     }
 
     pthread_mutex_unlock(&pb->m);
@@ -33,6 +33,7 @@ tspec pbarrier_wait(pbarrier_t *pb, tspec *offset)
     else {
         tspec wake_up;
         wake_up = tspec_add(&pb->reference, offset);
+        // need to update activation! and start a new instance
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wake_up, 0);
         return wake_up;
     }

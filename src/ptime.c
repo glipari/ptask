@@ -6,10 +6,10 @@ struct unit_conv {
 };
 
 const struct unit_conv conv_table[] = {
-    {1, 1000000000},  // SEC
-    {1000, 1000000},  // MILLI
-    {1000000, 1000},  // MICRO
-    {1000000000, 1}   // NANO
+    {1L, 1000000000L},  // SEC
+    {1000L, 1000000L},  // MILLI
+    {1000000L, 1000L},  // MICRO
+    {1000000000L, 1L}   // NANO
 };
 
 static tspec tspec_t0;

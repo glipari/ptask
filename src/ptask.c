@@ -137,6 +137,22 @@ static void *ptask_std_body(void *arg)
 
     pthread_cleanup_push(ptask_exit_handler, 0);
 
+    if (ptask_policy == SCHED_DEADLINE) {
+        struct sched_attr attr;
+        attr.size = sizeof(attr);
+        attr.sched_policy = SCHED_DEADLINE;
+        attr.sched_flags = SCHED_FLAG_RESET_ON_FORK;
+        attr.sched_runtime = (__u64)tspec_to(&(_tp[ptask_idx].runtime), NANO);
+        attr.sched_period = (__u64)tspec_to(&_tp[ptask_idx].period, NANO);
+        attr.sched_deadline = (__u64)tspec_to(&_tp[ptask_idx].deadline, NANO);
+        if (sched_setattr(gettid(), &attr, 0) != 0) {
+            printf("ERROR in setting sched_deadline parameters!\n");
+            perror("Error:");
+            return 0;
+        }
+        printf("SCHED_DEADLINE correctly set\n");
+    }
+
     if (_tp[ptask_idx].act_flag == DEFERRED) 
         ptask_wait_for_activation();
     else {
@@ -145,19 +161,6 @@ static void *ptask_std_body(void *arg)
         _tp[ptask_idx].at = tspec_add(&t, &_tp[ptask_idx].period);
     }
 
-    if (ptask_policy == SCHED_DEADLINE) {
-        struct sched_attr attr;
-        attr.size = sizeof(attr);
-        attr.sched_policy = SCHED_DEADLINE;
-        attr.sched_flags = SCHED_FLAG_RESET_ON_FORK;
-        attr.sched_runtime = (int)tspec_to(&(_tp[ptask_idx].runtime), NANO);
-        attr.sched_period = (int)tspec_to(&_tp[ptask_idx].period, NANO);
-        attr.sched_deadline = (int)tspec_to(&_tp[ptask_idx].deadline, NANO);
-        if (sched_setattr(gettid(), &attr, 0) != 0) {
-            printf("ERROR in setting sched_deadline parameters!\n");
-            perror("Error:");
-        }
-    }
     
     (*pdes->body)();
         
@@ -261,6 +264,7 @@ static int __create_internal(void (*task)(void), tpars *tp)
         CPU_ZERO(&cpuset);
         CPU_SET(tp->processor, &cpuset);
         _tp[i].cpu_id = tp->processor;
+        
         pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
     }
 
@@ -550,7 +554,7 @@ int ptask_activate_at(int i, ptime offset)
         ret = -1;
     }
     else {
-        t = tspec_get_ref();
+         t = tspec_get_ref();
         /* compute the absolute deadline */
         _tp[i].offset = tspec_add(&t, &reloff);
         _tp[i].dl = tspec_add(&_tp[i].offset, &_tp[i].deadline);
@@ -567,9 +571,10 @@ int ptask_activate_at(int i, ptime offset)
 ptime ptask_get_nextactivation(int unit)
 {
     ptime at_tmp;
+    tspec t = tspec_get_ref();
 
     pthread_mutex_lock(&_tp[ptask_idx].mux);
-    at_tmp = tspec_to(&_tp[ptask_idx].at, unit);
+    at_tmp = tspec_to(&_tp[ptask_idx].at, unit) - tspec_to(&t, unit);
     pthread_mutex_unlock(&_tp[ptask_idx].mux);
 
     return at_tmp;
