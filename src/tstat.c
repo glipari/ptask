@@ -54,3 +54,10 @@ tspec ptask_get_total(int i)
     return tspec_sub(&measures[i].last, &measures[i].first);
 }
 
+
+tspec tstat_getexec() {
+    tspec now;
+    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &now);
+    return now;
+}
+

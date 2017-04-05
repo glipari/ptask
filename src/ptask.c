@@ -432,7 +432,7 @@ int	ptask_get_deadline(int i, int unit)
     return d;
 }
 
-void	ptask_set_deadline(int i, int dline, int unit)
+void ptask_set_deadline(int i, int dline, int unit)
 {
     pthread_mutex_lock(&_tp[i].mux);
     _tp[i].deadline = tspec_from(dline, unit); 
@@ -610,7 +610,6 @@ int ptask_getnumcores()
 {
     return ptask_num_cores;
 }
-
 
 void ptask_syserror(char *f, char *msg)
 {

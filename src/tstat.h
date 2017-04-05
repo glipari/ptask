@@ -23,6 +23,8 @@
 void tstat_init(int i);           /*< init the internal data struct. */
 void tstat_record(int i);         /*< record data                    */
 
+tspec tstat_getexec();            /*< return exec time of curr. task */  
+
 tspec ptask_get_wcet(int i);     /*< returns the task wcet          */
 tspec ptask_get_avg(int i);      /*< returns the task av. exec time */
 int ptask_get_numinstances(int i); /*< returns the number of inst.    */

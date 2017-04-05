@@ -9,7 +9,7 @@
 gsem_t sem;
 
 #define WORK_NITER 10000000l
-    
+
 void calibrate_task()
 {
     int i=0;

@@ -8,8 +8,8 @@
 
 
 ptime periods[3]   = {100, 150, 180};
-ptime deadlines[3] = {100, 150, 180};
-ptime offsets[3]   = {2000, 2000, 2000};
+ptime deadlines[3] = {100, 148, 180};
+ptime offsets[3]   = {200, 200, 200};
 int   wcet[3]      = {30,  60,  50 }; 
 int   njobs[3]     = {5,   3,   3  }; 
 
@@ -67,7 +67,8 @@ void body()
         fprintf(stdout, "Task %i : starting job %d at time %ld, next act at time %ld\n",
                 idx, i, ptask_gettime(MILLI), ptask_get_nextactivation(MILLI));
         fflush(stdout);
-        WORK(wcet[idx] * iter_milli);
+        //WORK(wcet[idx] * iter_milli);
+        work_for(wcet[idx]-1, MILLI);
         fprintf(stdout, "Task %i : finish   job %d at time %ld\n",
                 idx, i, ptask_gettime(MILLI));
         fflush(stdout);
