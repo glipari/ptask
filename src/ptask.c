@@ -184,6 +184,18 @@ void ptask_init(int policy,
     ptask_protocol = protocol;
     ptask_num_cores = sysconf(_SC_NPROCESSORS_ONLN);
 
+    /* checks that admission control is disabled in case of partitioned edf */
+    if ((ptask_policy == SCHED_DEADLINE) && (ptask_global == PARTITIONED)) {
+        FILE *f = fopen("/proc/sys/kernel/sched_rt_runtime_us", "r");
+        int v = 0;
+        fscanf(f, "%d", &v);
+        fclose(f);
+        if (v != -1) {
+            fprintf(stderr, "Cannot set PARTITIONED EDF scheduling, because admission control is enabled\n");
+            exit(-1);
+        }
+    }
+
     /* initialize all private sem with the value 0	*/
     for (i=0; i<MAX_TASKS; i++) {
         sem_init(&_tsem[i], 0, 0);
