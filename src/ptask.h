@@ -61,6 +61,9 @@ extern const tpars TASK_SPEC_DFL;
 #define ptask_param_deadline(p, deadline, unit) \
     (p.rdline = tspec_from(deadline, unit))
 
+#define ptask_param_runtime(p, rt, unit) \
+    (p.runtime = tspec_from(rt, unit))
+
 #define ptask_param_priority(p, prio) \
     (p.priority = prio)
 
@@ -121,7 +124,9 @@ void  ptask_syserror(char *fun, char *msg);
     Deprecated : Use the function ptask_create_prio instead */
 int  ptask_create(void (*task)(void),
 		  int period, int prio, int aflag)
+#ifdef __GNUC__
                   __attribute__ ((deprecated));
+#endif
 
 /** 
     Creates a task with a certain task body, a period, a priority and an
@@ -159,14 +164,17 @@ pthread_t ptask_get_threadid(int i);    /*< returns the thread id of task i  */
 ptask_state ptask_get_state(int i);  /*< return the current task state       */
 
 /*----------------------------------------------------------------------------*/
-/*             Dinamically changing parameters                                */
+/*             Dynamically changing parameters                                */
 /*----------------------------------------------------------------------------*/
 
 int	      ptask_get_deadline(int i, int unit); /*< return current rel. dead   */
 void	  ptask_set_deadline(int i, int dline, int unit); /*< set rel. dead   */
 
 int	      ptask_get_period(int i, int unit); /*< return current period        */
-void	  ptask_set_period(int i, int per, int unit); /*< set period          */
+void	  ptask_set_period(int i, int period, int unit); /*< set period          */
+
+int           ptask_get_runtime(int i, int unit); /*< return current runtime    */
+void      ptask_set_runtime(int i, int runtime, int unit); /*< set runtime      */
 
 int	      ptask_get_priority(int i); /*< return current priority              */
 void	  ptask_set_priority(int i, int prio); /*< sets task priority         */

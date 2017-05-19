@@ -26,6 +26,8 @@ struct task_par {
     rtmode_t *modes;    /* the mode descripton          */
     pthread_mutex_t mux; /* mutex for this data struct  */
     int cpu_id;
+    struct sched_attr schedattr;        /* struct for SCHED_DEADLINE */
+    int tid;            /* thread id */
 };
 
 const tpars TASK_SPEC_DFL = {
@@ -142,14 +144,17 @@ static void *ptask_std_body(void *arg)
         attr.size = sizeof(attr);
         attr.sched_policy = SCHED_DEADLINE;
         attr.sched_flags = SCHED_FLAG_RESET_ON_FORK;
+        attr.sched_priority = 0;
         attr.sched_runtime = (__u64)tspec_to(&(_tp[ptask_idx].runtime), NANO);
         attr.sched_period = (__u64)tspec_to(&_tp[ptask_idx].period, NANO);
         attr.sched_deadline = (__u64)tspec_to(&_tp[ptask_idx].deadline, NANO);
-        if (sched_setattr(gettid(), &attr, 0) != 0) {
+        _tp[ptask_idx].tid = gettid();
+        if (sched_setattr(_tp[ptask_idx].tid, &attr, 0) != 0) {
             printf("ERROR in setting sched_deadline parameters!\n");
             perror("Error:");
             return 0;
         }
+        _tp[ptask_idx].schedattr = attr;
         //printf("SCHED_DEADLINE correctly set\n");
     }
 
@@ -230,12 +235,13 @@ static int __create_internal(void (*task)(void), tpars *tp)
     _tp[i].offset = tspec_zero;
     _tp[i].state = TASK_ACTIVE;
     _tp[i].cpu_id = -1; 
+    _tp[i].tid = -1;
 
     if (tp == NULL) {
         _tp[i].runtime = tspec_from(1, SEC);
         _tp[i].period = tspec_from(1, SEC);
         _tp[i].deadline = tspec_from(1, SEC);
-        _tp[i].priority = 1;
+        _tp[i].priority = (ptask_policy != SCHED_DEADLINE) ? 1 : 0;
         _tp[i].act_flag = DEFERRED;
         _tp[i].measure_flag = 0;
         _tp[i].arg = 0;
@@ -430,8 +436,22 @@ int	ptask_get_period(int i, int unit)
 
 void	ptask_set_period(int i, int period, int unit)
 {
+    tspec new_period;
+    new_period = tspec_from(period, unit);
+
     pthread_mutex_lock(&_tp[i].mux);
-    _tp[i].period = tspec_from(period, unit); 
+    if (ptask_policy == SCHED_DEADLINE) {
+        struct sched_attr *attr;
+        attr = &_tp[i].schedattr;
+        attr->sched_period = (__u64) tspec_to(&new_period, NANO);
+        if (sched_setattr(_tp[i].tid, attr, 0) != 0) {
+            attr->sched_period = (__u64) tspec_to(&_tp[i].period, NANO);
+            printf("ERROR in ptask_set_period !\n");
+            perror("Error:");
+            return;
+        }
+    }
+    _tp[i].period = new_period;
     pthread_mutex_unlock(&_tp[i].mux);
 }
 
@@ -446,8 +466,55 @@ int	ptask_get_deadline(int i, int unit)
 
 void ptask_set_deadline(int i, int dline, int unit)
 {
+    tspec new_dline;
+    new_dline = tspec_from(dline, unit);
+
     pthread_mutex_lock(&_tp[i].mux);
-    _tp[i].deadline = tspec_from(dline, unit); 
+    if (ptask_policy == SCHED_DEADLINE) {
+        struct sched_attr *attr;
+        attr = &_tp[i].schedattr;
+        attr->sched_deadline = (__u64) tspec_to(&new_dline, NANO);
+        if (sched_setattr(_tp[i].tid, attr, 0) != 0) {
+            attr->sched_deadline = (__u64) tspec_to(&_tp[i].deadline, NANO);
+            printf("ERROR in ptask_set_deadline !\n");
+            perror("Error:");
+            return;
+        }
+    }
+    _tp[i].deadline = new_dline;
+    pthread_mutex_unlock(&_tp[i].mux);
+}
+
+int ptask_get_runtime(int i, int unit)
+{
+    int d;
+    pthread_mutex_lock(&_tp[i].mux);
+    d = tspec_to(&_tp[i].runtime, unit);
+    pthread_mutex_unlock(&_tp[i].mux);
+    return d;
+}
+
+void ptask_set_runtime(int i, int runtime, int unit)
+{
+    tspec new_runtime;
+    struct sched_attr *attr; 
+
+    if (ptask_policy != SCHED_DEADLINE) {
+        printf("Error (ptask_set_runtime): The policy is not SCHED_DEADLINE\n");
+        return;
+    }
+
+    new_runtime = tspec_from(runtime, unit);
+    pthread_mutex_lock(&_tp[i].mux);
+    attr = &_tp[i].schedattr;
+    attr->sched_runtime = (__u64) tspec_to(&new_runtime, NANO);
+    if (sched_setattr(_tp[i].tid, attr, 0) != 0) {
+        attr->sched_runtime = (__u64) tspec_to(&_tp[i].runtime, NANO);
+        printf("ERROR in ptask_set_runtime !\n");
+        perror("Error:");
+        return;
+    }
+    _tp[i].runtime = new_runtime;
     pthread_mutex_unlock(&_tp[i].mux);
 }
 
@@ -459,6 +526,11 @@ int	ptask_get_priority(int i)
 void ptask_set_priority(int i, int prio)
 {
     struct sched_param  mypar;
+
+    if (ptask_policy == SCHED_DEADLINE) {
+        printf("Error (ptask_set_priority): The policy is SCHED_DEADLINE\n");
+        return;
+    }
     _tp[i].priority = prio;
     mypar.sched_priority = prio;
     sched_setscheduler(ptask_get_threadid(i),
