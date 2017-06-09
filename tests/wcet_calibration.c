@@ -37,7 +37,7 @@ int main()
     ptask_param_period(p, 100, MILLI);
     ptask_param_measure(p);
     ptask_param_deadline(p, 100, MILLI);
-    p.runtime = tspec_from(30, MILLI);
+    ptask_param_runtime(p, 30, MILLI);
     ptask_param_activation(p, NOW);
     
     // calibration

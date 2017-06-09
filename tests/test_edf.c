@@ -93,7 +93,7 @@ int main()
         ptask_param_period(p, periods[i], MILLI);
         ptask_param_deadline(p, deadlines[i], MILLI);
         ptask_param_processor(p, 0);
-        p.runtime = tspec_from(wcet[i] + 1, MILLI);
+        ptask_param_runtime(p, wcet[i] + 1, MILLI);
         ptask_param_measure(p);
         ptask_param_activation(p, DEFERRED);
         int ret = ptask_create_param(body, &p);
