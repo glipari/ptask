@@ -5,6 +5,7 @@ Periodic Real-Time Task interface to pthreads
 * Version 0.1, April 2013
 * Version 0.2, August 2013
 * Version 0.3, September 2015
+* Version 0.4, July 2017
 
 ----
 ## Authors
@@ -15,6 +16,7 @@ Periodic Real-Time Task interface to pthreads
 ## Contributors
 
 * Alessio Balsini (a.balsini@sssup.it)
+* Alexandre Becart and Benoit Delecroix (integration SCHED_DEADLINE)
 
 License: GPL 3.0
 
