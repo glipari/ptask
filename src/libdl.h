@@ -12,21 +12,36 @@
 
 
 /* XXX use the proper syscall numbers */
+
+/* __NR_sched_setattr number */
+#ifndef __NR_sched_setattr
 #ifdef __x86_64__
-#define __NR_sched_setattr	314
+#define __NR_sched_setattr      314
+#endif
+
+#ifdef __i386__
+#define __NR_sched_setattr	351
+#endif
+
+#ifdef __arm__
+#define __NR_sched_setattr	380
+#endif
+#endif /* __NR_sched_setattr */
+
+/* __NR_sched_getattr number */
+#ifndef __NR_sched_getattr
+#ifdef __x86_64__
 #define __NR_sched_getattr	315
 #endif
 
 #ifdef __i386__
-#define __NR_sched_setattr      351
-#define __NR_sched_getattr      352
+#define __NR_sched_getattr	352
 #endif
 
 #ifdef __arm__
-#define __NR_sched_setattr      380
-#define __NR_sched_getattr      381
+#define __NR_sched_getattr	381
 #endif
-
+#endif /* __NR_sched_getattr */
 
 struct sched_attr {
     __u32 size;
