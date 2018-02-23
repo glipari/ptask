@@ -11,12 +11,15 @@ include_directories(${ALLEGRO_INCLUDE_DIR})
 add_executable(ball ball.c)
 add_executable(pbarr_example pbarr_example.c)
 add_executable(modes modes.c)
+add_executable(deadline_exception deadline_exception.c)
 add_executable(pcp pcp.c)
 
-target_link_libraries(ball ptask Threads::Threads ${ALLEGRO_LIBRARY} m)
-target_link_libraries(pbarr_example ptask Threads::Threads ${ALLEGRO_LIBRARY} m)
-target_link_libraries(modes ptask Threads::Threads ${ALLEGRO_LIBRARY} m)
-target_link_libraries(pcp ptask Threads::Threads ${ALLEGRO_LIBRARY} m)
+
+target_link_libraries(ball ptask Threads::Threads ${ALLEGRO_LIBRARY} m rt)
+target_link_libraries(pbarr_example ptask Threads::Threads ${ALLEGRO_LIBRARY} m rt)
+target_link_libraries(modes ptask Threads::Threads ${ALLEGRO_LIBRARY} m rt)
+target_link_libraries(deadline_exception ptask Threads::Threads ${ALLEGRO_LIBRARY} m rt)
+target_link_libraries(pcp ptask Threads::Threads ${ALLEGRO_LIBRARY} m rt)
 
 file(COPY pcp.dat DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
