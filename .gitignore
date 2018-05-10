@@ -1,3 +1,10 @@
+<<<<<<< HEAD
 # -*- mode: gitignore; -*-
 *~
 \#*\#
+=======
+build/
+.vscode/
+next
+buildscript.sh
+>>>>>>> 1d1bdd7ab639c9dc6c5e0f256396ddf5138d0b7c

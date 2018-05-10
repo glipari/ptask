@@ -5,12 +5,14 @@
 #ifndef __PTASK_H__
 #define __PTASK_H__
 
+#include "dle_timer.h"
 #include <pthread.h>
 #include <semaphore.h>
 #include <ptime.h>
 #include <rtmode.h>
 #include <linux/sched.h>
 #include <libdl.h>
+#include <signal.h>
 
 /*--------------------------------------------------------------*/
 
@@ -48,6 +50,31 @@ typedef struct {
 
 extern const tpars TASK_SPEC_DFL;
 
+struct task_par {
+    void * arg;         /* task argument                */
+    int   index;	    /* task index                   */
+    tspec runtime;      /* task runtime                 */
+    tspec period;       /* task period 	                */
+    tspec deadline;	    /* relative deadline 	        */
+    int	  priority;	    /* task priority in [0,99]	    */
+    int   dmiss;	    /* number of deadline misses  	*/
+    tspec at;		    /* next activation time	     	*/
+    tspec dl;		    /* current absolute deadline	*/
+    tspec offset;       /* offset from activation time  */
+    void (*body)(void); /* the actual body of the task  */
+    int  free;          /* >=0 if this descr is avail.  */
+    int  act_flag;      /* flag for postponed activ.    */
+    int  measure_flag;  /* flag for measurement         */
+    ptask_state  state; /* ACTIVE, SUSPENDED, WFP       */
+    rtmode_t *modes;    /* the mode descripton          */
+    pthread_mutex_t mux;/* mutex for this data struct   */
+    int cpu_id;
+    struct sched_attr schedattr;        /* struct for SCHED_DEADLINE */
+    pthread_attr_t attr;
+    sigjmp_buf jmp_env;
+    pid_t tid;            /* thread id */
+};
+
 /*----------------------------------------------------------------------------*/
 /*             SETTING PARAMETERS FOR CREATING A TASK                         */
 /*----------------------------------------------------------------------------*/
@@ -84,7 +111,6 @@ extern const tpars TASK_SPEC_DFL;
 
 #define ptask_param_mode_add(p, mode_num) \
     (p.mode_list[ p.nmodes++ ] = mode_num)
-
 
 /* ------------------------------------------------------------------ */
 /*                     GLOBAL FUNCTIONS                               */
@@ -161,6 +187,10 @@ ptime     ptask_get_nextactivation(int unit); /*< next act. time of thread   */
 int 	  ptask_activate(int i); /*< activates the task of idx i            p */
 int	      ptask_activate_at(int i, ptime off, int unit); /*< act. at offset  */
 pthread_t ptask_get_threadid(int i);    /*< returns the thread id of task i  */
+pthread_attr_t* ptask_get_threadattr(int i);
+struct task_par *ptask_get_task(int i);
+struct task_par *ptask_get_current();
+pthread_t running_thread_id();
 ptask_state ptask_get_state(int i);  /*< return the current task state       */
 
 /*----------------------------------------------------------------------------*/

@@ -9,6 +9,8 @@ set(SOURCE_FILES
   rtmode.c
   tstat.c
   libdl.c
+  dle_timer.c
+  calibrate.c
 )
 
 set(HEADER_FILES
@@ -19,6 +21,8 @@ set(HEADER_FILES
   ptime.h
   rtmode.h
   tstat.h
+  dle_timer.h
+  calibrate.h
 )
 
 # Create a library called "ptask" which includes the source files.

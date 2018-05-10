@@ -7,29 +7,6 @@
 #include "pmutex.h"
 #include "tstat.h"
 
-struct task_par {
-    void * arg;         /* task argument                */
-    int   index;	    /* task index                   */
-    tspec runtime;      /* task runtime */
-    tspec period;       /* task period 	                */
-    tspec deadline;	    /* relative deadline 	        */
-    int	  priority;	    /* task priority in [0,99]	    */
-    int   dmiss;	    /* number of deadline misses  	*/
-    tspec at;		    /* next activation time	     	*/
-    tspec dl;		    /* current absolute deadline	*/
-    tspec offset;       /* offset from activation time  */
-    void (*body)(void); /* the actual body of the task  */
-    int  free;          /* >=0 if this descr is avail.  */
-    int  act_flag;      /* flag for postponed activ.    */
-    int  measure_flag;  /* flag for measurement         */
-    ptask_state  state; /* ACTIVE, SUSPENDED, WFP       */
-    rtmode_t *modes;    /* the mode descripton          */
-    pthread_mutex_t mux; /* mutex for this data struct  */
-    int cpu_id;
-    struct sched_attr schedattr;        /* struct for SCHED_DEADLINE */
-    int tid;            /* thread id */
-};
-
 const tpars TASK_SPEC_DFL = {
     .runtime = {1, 0},
     .period = {1, 0},  
@@ -59,6 +36,9 @@ static pthread_mutex_t   _tp_mutex; /** this is used to protect the
        sem_protocol  ptask_protocol;     /* semaphore protocol         */
 static int           ptask_num_cores;    /* number of cores in the system */
 
+int dle_init();//TODO : modify comment (before task initialization)
+
+int dle_exit(); //TODO : modify comment (after task ends)
 
 /**
    This function returns a free descriptor, or -1 if there are no more
@@ -138,6 +118,7 @@ static void *ptask_std_body(void *arg)
         tstat_init(ptask_idx);
 
     pthread_cleanup_push(ptask_exit_handler, 0);
+    _tp[ptask_idx].tid = gettid();
 
     if (ptask_policy == SCHED_DEADLINE) {
         struct sched_attr attr;
@@ -148,7 +129,6 @@ static void *ptask_std_body(void *arg)
         attr.sched_runtime = (__u64)tspec_to(&(_tp[ptask_idx].runtime), NANO);
         attr.sched_period = (__u64)tspec_to(&_tp[ptask_idx].period, NANO);
         attr.sched_deadline = (__u64)tspec_to(&_tp[ptask_idx].deadline, NANO);
-        _tp[ptask_idx].tid = gettid();
         if (sched_setattr(_tp[ptask_idx].tid, &attr, 0) != 0) {
             printf("ERROR in setting sched_deadline parameters!\n");
             perror("Error:");
@@ -166,9 +146,9 @@ static void *ptask_std_body(void *arg)
         _tp[ptask_idx].at = tspec_add(&t, &_tp[ptask_idx].period);
     }
 
-    
+    dle_init();
     (*pdes->body)();
-        
+    dle_exit();
     pthread_cleanup_pop(1);
 
     return 0;
@@ -218,10 +198,9 @@ void ptask_init(int policy,
     tspec_init();
 }
 
-
 static int __create_internal(void (*task)(void), tpars *tp)
 {
-    pthread_attr_t	myatt;
+    //pthread_attr_t	myatt;
     struct sched_param  mypar;
     int	tret;
     int j=0;
@@ -267,29 +246,27 @@ static int __create_internal(void (*task)(void), tpars *tp)
         }
     }
     
-    pthread_attr_init(&myatt);
-    if (ptask_policy != SCHED_OTHER)
-        pthread_attr_setinheritsched(&myatt, PTHREAD_EXPLICIT_SCHED);
+    pthread_attr_init(&_tp[i].attr);
+    if (ptask_policy != SCHED_OTHER) {
+        pthread_attr_setinheritsched(&_tp[i].attr, PTHREAD_EXPLICIT_SCHED);
+    }
 
     if (ptask_policy != SCHED_DEADLINE) {
-        pthread_attr_setschedpolicy(&myatt, ptask_policy);
+        pthread_attr_setschedpolicy(&_tp[i].attr, ptask_policy);
         mypar.sched_priority = _tp[i].priority;
-        pthread_attr_setschedparam(&myatt, &mypar);
-    } else pthread_attr_setschedpolicy(&myatt, SCHED_OTHER);
-    
+        pthread_attr_setschedparam(&_tp[i].attr, &mypar);
+    } else pthread_attr_setschedpolicy(&_tp[i].attr, SCHED_OTHER);
     cpu_set_t cpuset;
     if (ptask_global == PARTITIONED) {
         CPU_ZERO(&cpuset);
         CPU_SET(tp->processor, &cpuset);
-        _tp[i].cpu_id = tp->processor;
-        
-        pthread_attr_setaffinity_np(&myatt, sizeof(cpu_set_t), &cpuset);
+        _tp[i].cpu_id = tp->processor;        
+        pthread_attr_setaffinity_np(&_tp[i].attr, sizeof(cpu_set_t), &cpuset);
     }
 
-    tret = pthread_create(&_tid[i], &myatt, 
+    tret = pthread_create(&_tid[i], &_tp[i].attr,
                           ptask_std_body, (void*)(&_tp[i]));
-
-    pthread_attr_destroy(&myatt);
+    pthread_attr_destroy(&_tp[i].attr);
     
     if (tret == 0) {
         return i;
@@ -413,16 +390,34 @@ void * ptask_get_argument()
     return _tp[ptask_idx].arg;
 }
 
-
 ptask_state ptask_get_state(int i)
 {
     return _tp[i].state;
 }
 
+pthread_attr_t* ptask_get_threadattr(int i)
+{
+    return &_tp[i].attr;
+}
 
 pthread_t ptask_get_threadid(int i)
 {
     return _tid[i];
+}
+
+struct task_par *ptask_get_task(int i) 
+{
+    return &_tp[i];
+}
+
+struct task_par *ptask_get_current()
+{
+    return ptask_get_task(ptask_idx);
+}
+
+pthread_t running_thread_id()
+{
+    return _tid[ptask_idx];
 }
 
 int	ptask_get_period(int i, int unit)
@@ -459,7 +454,7 @@ int	ptask_get_deadline(int i, int unit)
 {
     int d;
     pthread_mutex_lock(&_tp[i].mux);
-    d = tspec_to(&_tp[i].deadline, unit); 
+    d = tspec_to(&_tp[i].deadline, unit);
     pthread_mutex_unlock(&_tp[i].mux);
     return d;
 }
