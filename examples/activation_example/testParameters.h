@@ -78,5 +78,5 @@ ptime time_t0; /* Time reference for timeoffset (from ptask_init(...))*/
 /* *************************************************************************************************
  */
 
-/* mutual esclusion semaphores  */
+/* mutual exclusion semaphores  */
 pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;

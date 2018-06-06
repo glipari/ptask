@@ -32,7 +32,7 @@
 
 float v0[MAX_TASKS]; /* impact velocity with floor   */
 
-/* mutual esclusion semaphores  */
+/* mutual exclusion semaphores  */
 pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mxv; // = PTHREAD_MUTEX_INITIALIZER;
 

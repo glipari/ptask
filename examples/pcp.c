@@ -45,7 +45,7 @@ int prio[MAX_TASKS];   /* task priority	*/
 int nt;            /* number of tasks	*/
 float scale = 1.0; /* time scale		*/
 
-/* mutual esclusion semaphores  */
+/* mutual exclusion semaphores  */
 pthread_mutex_t mxa, muxA, muxB;
 // pthread_mutexattr_t	matt;
 

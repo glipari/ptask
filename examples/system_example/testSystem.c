@@ -18,7 +18,7 @@ int tid[MAX_TASKS];    /* task id			*/
 int num_tasks;     /* number of tasks	*/
 float scale = 1.0; /* time scale		*/
 
-/* mutual esclusion semaphores  */
+/* mutual exclusion semaphores  */
 pthread_mutex_t mxa;
 
 /*--------------------------------------------------------------*/

@@ -76,7 +76,7 @@
 #define PIP 1 /* Priority Inheritance Protocol	*/
 #define PCP 2 /* Priority Ceiling Protocol		*/
 /* ************************************************************* */
-/* mutual esclusion semaphores  */
+/* mutual exclusion semaphores  */
 pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_mutex_t mx_sezNorm; // no protocol
