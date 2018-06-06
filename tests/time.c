@@ -58,7 +58,7 @@ int main() {
     t3 = tspec_from(delta3, MICRO);
     tspec diff = tspec_sub(&t2, &t3);
     delta1 = tspec_to(&diff, MICRO);
-    assert(delta1 = (delta3 - delta2));
+    assert(delta1 == (delta3 - delta2));
 
     return 0;
 }
