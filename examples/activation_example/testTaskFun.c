@@ -39,7 +39,7 @@ int	main(void)
     int 	modeACT = MOD_NOW;		/* {MOD_NOW=0, MOD_DEF_OFFSET=1, MOD_DEF_NO_OFFS = 2} */
     int   act_flag = NOW;
 
-    init(TASK_FUN);
+    init();
 
     int 	num_tasks = NUM_T_TEST;
     int 	priority[num_tasks];
