@@ -204,7 +204,7 @@ void init(int policy, int prot) {
 /*--------------------------------------------------------------*/
 
 void task() {
-    int x;
+    int x = 0;
     long t;
     int i, k;
     int lev1, lev2, col;
