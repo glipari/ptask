@@ -33,7 +33,7 @@ int main(void) {
     int test = PART;
 
     for (i = 0; i < NUM_T_TEST; i++) {
-        state_task[NUM_T_TEST] = false;
+        state_task[i] = false;
     }
 
     init();
