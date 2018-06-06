@@ -296,7 +296,7 @@ void gen() {
     int i, j;
 
     for (i = 1; i < nt; i++) {
-        j = ptask_create(task, period[i], prio[i], DEFERRED);
+        j = ptask_create_prio(task, period[i], prio[i], DEFERRED);
         if (j < 0)
             ptask_syserror("gen()", "error in creating task");
     }
@@ -323,7 +323,7 @@ int main(void) {
     lev1 = LEV0 - 2;
     lev2 = LEV0 - 2 - DEX;
 
-    int gen_id = ptask_create(gen, 100, 30, NOW);
+    int gen_id = ptask_create_prio(gen, 100, 30, NOW);
     if (gen_id < 0) {
         printf("Could not create task gen\n");
         exit(-1);

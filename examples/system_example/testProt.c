@@ -287,7 +287,7 @@ int main(void) {
     nc = ptask_getnumcores();
     textprintf_ex(screen, font, 480, 10, 7, BGC, "(NumCores = %d)", nc);
 
-    int gen_id = ptask_create(gen, 100, 30, NOW);
+    int gen_id = ptask_create_prio(gen, 100, 30, NOW);
     if (gen_id < 0) {
         printf("Could not create task gen\n");
         exit(-1);

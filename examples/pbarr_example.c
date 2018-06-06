@@ -52,7 +52,7 @@ int main() {
         offset[i] = tspec_from(i, SEC);
 
     for (i = 0; i < NTASKS; i++) {
-        ret = ptask_create(task_body, (i + 1) * 1000, NTASKS + 1 - i, NOW);
+        ret = ptask_create_prio(task_body, (i + 1) * 1000, NTASKS + 1 - i, NOW);
         printf("ret = %d \n", ret);
     }
 
