@@ -68,7 +68,7 @@ int dle_init() {
 // Not meant to be called by the user
 int dle_exit() {
     int task_index = ptask_get_index();
-    if (!dle_timer_initialized(task_index))
+    if (!dle_timer_initialized())
         return -1;
     return timer_delete(dle_timers[task_index].dle_timer_timerid);
 }
@@ -79,7 +79,7 @@ int dle_timer_start() {
     struct task_par *task = ptask_get_current();
     int task_index = task->index;
     struct itimerspec its;
-    if (!dle_timer_initialized(task_index))
+    if (!dle_timer_initialized())
         return 1;
 
     its.it_value.tv_nsec = task->dl.tv_nsec;
@@ -95,7 +95,7 @@ int dle_timer_start() {
 int dle_timer_stop() {
     struct itimerspec its;
     int task_index = ptask_get_index();
-    if (!dle_timer_initialized(task_index))
+    if (!dle_timer_initialized())
         return 1;
 
     its.it_interval.tv_nsec = its.it_value.tv_nsec = 0;
