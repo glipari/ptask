@@ -56,9 +56,12 @@ int main() {
     // test the subtraction
     t2 = tspec_from(delta2, MICRO);
     t3 = tspec_from(delta3, MICRO);
-    tspec diff = tspec_sub(&t2, &t3);
+    tspec diff = tspec_sub(&t3, &t2);
+    //printf("delta2 = %ld  delta3 = %ld  delta3 - delta2 = %ld\n",
+    //       delta2, delta3, delta3 - delta2);
     delta1 = tspec_to(&diff, MICRO);
-    assert(delta1 == (delta3 - delta2));
+    // printf("delta1 = %ld\n", delta1); 
+    assert( delta1 == (delta3 - delta2) );
 
     return 0;
 }

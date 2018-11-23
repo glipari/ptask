@@ -12,14 +12,19 @@ struct dle_manager_s {
 static struct dle_manager_s dle_manager;
 static struct dle_timer_s dle_timers[MAX_TASKS];
 
-static void dle_manager_handler(int signo, siginfo_t *info, void *context) {
+static void dle_manager_handler(int signo, siginfo_t *info, void *context)
+{
     struct task_par *task = ptask_get_task(info->si_value.sival_int);
-    printf("Handler Task Manager Warning : task %d received signal %d",
+
+    printf("    [DLE DEBUG] **** WARNING **** Handler task manager: task %d received signal %d\n",
            info->si_value.sival_int, signo);
-    printf("\n\tNow %ld, Deadline %ld\n", ptask_gettime(MILLI),
+    printf("    [DLE DEBUG] Now %ld, Deadline %ld\n", ptask_gettime(MILLI),
            tspec_to_rel(&task->dl, MILLI));
-    if (syscall(SYS_tgkill, getpid(), task->tid, SIGUSR1) != 0)
+    
+    if (syscall(SYS_tgkill, getpid(), task->tid, SIGUSR1) != 0) {
+        perror("Could not send signal");
         exit(EXIT_FAILURE);
+    }
 }
 
 static int dle_timer_initialized() {
@@ -31,7 +36,6 @@ static void task_handler(int sig, siginfo_t *info, void *context) {
     siglongjmp(ptask_get_current()->jmp_env, 1);
 }
 
-// Not meant to be calle the user
 int dle_init() {
     struct sigaction manager_sigaction, task_sigaction;
     int task_index = ptask_get_index();
@@ -80,14 +84,16 @@ int dle_timer_start() {
     int task_index = task->index;
     struct itimerspec its;
     if (!dle_timer_initialized())
-        return 1;
+        return 1; /* TODO CHECK THIS */
 
     its.it_value.tv_nsec = task->dl.tv_nsec;
     its.it_value.tv_sec = task->dl.tv_sec;
     its.it_interval.tv_nsec = its.it_interval.tv_sec = 0;
 
-    printf("Arm %ld, task %d | Deadline %ld\n", ptask_gettime(MILLI),
+    printf("    [DLE DEBUG] Arm at time %ld, task %d with deadline %ld\n",
+           ptask_gettime(MILLI),
            task_index, tspec_to_rel(&task->dl, MILLI));
+    
     return timer_settime(dle_timers[task_index].dle_timer_timerid,
                          TIMER_ABSTIME, &its, NULL);
 }
@@ -101,8 +107,10 @@ int dle_timer_stop() {
     its.it_interval.tv_nsec = its.it_value.tv_nsec = 0;
     its.it_interval.tv_sec = its.it_value.tv_sec = 0;
 
-    printf("Disarm %ld, task %d | Deadline %ld\n", ptask_gettime(MILLI),
+    printf("    [DLE DEBUG] Disarm at time %ld, task %d with deadline %ld\n",
+           ptask_gettime(MILLI),
            task_index, tspec_to_rel(&ptask_get_task(task_index)->dl, MILLI));
+    
     return timer_settime(dle_timers[task_index].dle_timer_timerid,
                          TIMER_ABSTIME, &its, NULL);
 }

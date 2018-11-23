@@ -137,9 +137,11 @@ static void *ptask_std_body(void *arg) {
         _tp[ptask_idx].at = tspec_add(&t, &_tp[ptask_idx].period);
     }
 
-    dle_init();
+    
+    dle_init(); /*< init dle handler for this task */ 
     (*pdes->body)();
-    dle_exit();
+    dle_exit(); /*< cleanup dle handler for this task */
+    
     pthread_cleanup_pop(1);
 
     return 0;
