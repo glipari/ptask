@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define ALLEGRO_NO_FIX_ALIASES /* fix for the new version of glibc */
+
 #define XWIN 640
 #define YWIN 480
 #define PI 3.1415

@@ -1,4 +1,7 @@
 #include <allegro.h>
+
+#define ALLEGRO_NO_FIX_ALIASES /* fix for the new version of glibc */
+
 #include <math.h>
 #include <pthread.h>
 #include <sched.h>

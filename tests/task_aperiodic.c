@@ -43,7 +43,7 @@ int main() {
     }
 
     params = TASK_SPEC_DFL;
-    params.period = tspec_from(1, SEC);
+    params.period = tspec_from(1, MILLI);
     params.priority = 1;
     params.act_flag = NOW;
 

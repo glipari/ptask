@@ -23,20 +23,25 @@ const tpars TASK_SPEC_DFL = {.runtime = {1, 0},
 
 pthread_t _tid[MAX_TASKS];
 struct task_par _tp[MAX_TASKS];
+
 static int first_free;
-static pthread_mutex_t _tp_mutex; /** this is used to protect the
-                                      _tp data structure from concurrent
-                                      accesses from the main and the
-                                      threads */
-sem_t _tsem[MAX_TASKS];           /* for task_activate	      */
-int ptask_policy;                 /* common scheduling policy   */
-global_policy ptask_global;       /* global or partitioned      */
-sem_protocol ptask_protocol;      /* semaphore protocol         */
-static int ptask_num_cores;       /* number of cores in the system */
+static pthread_mutex_t _tp_mutex; /*< this is used to protect the
+                                    _tp data structure from concurrent
+                                    accesses from the main and the
+                                    threads */
+sem_t _tsem[MAX_TASKS];           /*< for task_activate	      */
+int ptask_policy;                 /*< common scheduling policy   */
+global_policy ptask_global;       /*< global or partitioned      */
+sem_protocol ptask_protocol;      /*< semaphore protocol         */
+static int ptask_num_cores;       /*< number of cores in the system */
 
-int dle_init(); // TODO : modify comment (before task initialization)
 
-int dle_exit(); // TODO : modify comment (after task ends)
+/** For the deadline exception mechanism
+    
+    @todo: move them into the user code (not automatic!)
+ */
+extern int dle_init(); // TODO : modify comment (before task initialization)
+extern int dle_exit(); // TODO : modify comment (after task ends)
 
 /**
    This function returns a free descriptor, or -1 if there are no more
@@ -50,7 +55,7 @@ static int allocate_tp() {
         return -1;
     else {
         pthread_mutex_lock(&_tp_mutex);
-        if (_tp[x].free == _TP_BUSY) {
+        if (_tp[x].free == _TP_BUSY) { /*< already taken by another thread ! */
             pthread_mutex_unlock(&_tp_mutex);
             return -1;
         }
@@ -83,22 +88,22 @@ static void release_tp(int i) {
     pthread_mutex_unlock(&_tp_mutex);
 }
 
-// This is the task index as seen from the thread
+/* This is the task index as seen from the thread */
 static __thread int ptask_idx;
 
-// this is to be called from the thread and returns the
-// current index
+/* this is to be called from the thread and returns the
+   current index */
 int ptask_get_index() { return ptask_idx; }
 
-// the exit handler of each task
+/* the exit handler of each task */
 static void ptask_exit_handler(void *arg) { release_tp(ptask_idx); }
 
-// the thread body.
-// 1) It does some book keeping and installs the
-//    exit handler.
-// 2) if necessary, waits for the first activation
-// 3) then calls the real user task body
-// 40 on exit, it cleans up everything
+/* the thread body.
+   1) It does some book keeping and installs the
+      exit handler.
+   2) if necessary, waits for the first activation
+   3) then calls the real user task body
+   4) on exit, it cleans up everything */
 static void *ptask_std_body(void *arg) {
     struct task_par *pdes = (struct task_par *)arg;
 
@@ -138,9 +143,9 @@ static void *ptask_std_body(void *arg) {
     }
 
     
-    dle_init(); /*< init dle handler for this task */ 
+    //dle_init(); /*< init dle handler for this task */ 
     (*pdes->body)();
-    dle_exit(); /*< cleanup dle handler for this task */
+    //dle_exit(); /*< cleanup dle handler for this task */
     
     pthread_cleanup_pop(1);
 
@@ -172,7 +177,7 @@ void ptask_init(int policy, global_policy global, sem_protocol protocol) {
         }
     }
 
-    /* initialize all private sem with the value 0	*/
+    /* initializes all private sems with the value 0	*/
     for (i = 0; i < MAX_TASKS; i++) {
         sem_init(&_tsem[i], 0, 0);
         if (i == MAX_TASKS - 1)
@@ -277,8 +282,8 @@ int ptask_create_param(void (*task)(void), tpars *tp) {
 }
 
 /*--------------------------------------------------------------*/
-/*  TASK_CREATE: initialize thread parameters and creates a	*/
-/*		 thread						*/
+/*  TASK_CREATE: initialize thread parameters and creates a	    */
+/*		 thread						                            */
 /*--------------------------------------------------------------*/
 int ptask_create(void (*task)(void), int period, int prio, int aflag) {
     return ptask_create_prio(task, period, prio, aflag);

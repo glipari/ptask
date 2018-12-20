@@ -6,6 +6,13 @@
 #include <stdlib.h>
 #include <tstat.h>
 
+
+/* In this test we actually check that the sequence of termination
+   events for the tasks is correct.  For the moment, this is done in
+   an "artisanal" way. 
+
+   In the next version, this will be done through the tracer */
+
 ptime periods[3] = {100, 150, 180};
 ptime deadlines[3] = {100, 148, 180};
 ptime offsets[3] = {200, 200, 200};
@@ -53,7 +60,6 @@ void body() {
                 "Task %i : starting job %d at time %ld, next act at time %ld\n",
                 idx, i, ptask_gettime(MILLI), ptask_get_nextactivation(MILLI));
         fflush(stdout);
-        // WORK(wcet[idx] * iter_milli);
         work_for(wcet[idx] - 1, MILLI);
         fprintf(stdout, "Task %i : finish   job %d at time %ld\n", idx, i,
                 ptask_gettime(MILLI));

@@ -33,7 +33,7 @@ add_test(key_optTest key_opt)
 add_test(test_coresTest test_cores)
 add_test(task_createTest task_create)
 add_test(task_aperiodicTest task_aperiodic)
-add_test(wcet_calibrationTest wcet_calibration)
+#add_test(wcet_calibrationTest wcet_calibration)
 add_test(test_edfTest test_edf)
 
 file(COPY runtest.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

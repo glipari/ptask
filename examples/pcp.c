@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define ALLEGRO_NO_FIX_ALIASES /* fix for the new version of glibc */
+
 #define XMIN 0
 #define YMIN 0
 #define XMAX 640

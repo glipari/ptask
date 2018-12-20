@@ -1,7 +1,9 @@
 #ifndef _LIBDL_H_
 #define _LIBDL_H_
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 #include <linux/kernel.h>
 #include <linux/sched.h>

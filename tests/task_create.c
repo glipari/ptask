@@ -19,8 +19,8 @@ int main() {
     printf("Before creating the task: act_flag = %d\n", tparam.act_flag);
 
     // setting the parameters
-    tparam = (tpars){.period = tspec_from(1, SEC),
-                     .rdline = tspec_from(1, SEC),
+    tparam = (tpars){.period = tspec_from(1, MILLI),
+                     .rdline = tspec_from(1, MILLI),
                      .priority = 1,
                      .processor = 1,
                      .act_flag = NOW};
@@ -33,8 +33,8 @@ int main() {
 
     pthread_join(ptask_get_threadid(index), 0);
 
-    tparam = (tpars){.period = tspec_from(1, SEC),
-                     .rdline = tspec_from(1, SEC),
+    tparam = (tpars){.period = tspec_from(1, MILLI),
+                     .rdline = tspec_from(1, MILLI),
                      .priority = 1,
                      .processor = 1,
                      .act_flag = 0};
@@ -45,9 +45,10 @@ int main() {
     if (index >= 0)
         printf("Task %d created\n", index);
 
-    sleep(2);
+    usleep(10000);
 
     printf("Now activating\n");
+
     ptask_activate(index);
 
     pthread_join(ptask_get_threadid(index), 0);
