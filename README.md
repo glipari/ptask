@@ -16,7 +16,9 @@ Periodic Real-Time Task interface to pthreads
 ## Contributors
 
 * Alessio Balsini (a.balsini@sssup.it)
-* Alexandre Becart and Benoit Delecroix (integration SCHED_DEADLINE)
+* Alexandre Becart and Benoit Delecroix (integrating SCHED_DEADLINE)
+* Pierre Caruyer (dline exception)
+* Amine El Messaoudi (ptracer)
 
 License: GPL 3.0
 
@@ -87,6 +89,8 @@ or, from the `ptask/build/` directory, run
 $ sudo make test
 ```
 
-Note: to use <code>ptaskTracer</code>, <code>cmake</code> with the option <code>-DTRACE=ON</code>.
+Note:to use <code>ptaskTracer</code>, you must first install the lttng
+development library (in Debian, package liblttng-ust-dev), then invoke
+<code>cmake</code> with option <code>-DTRACE=ON</code>.
 
 Happy programming!
