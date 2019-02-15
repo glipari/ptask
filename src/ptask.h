@@ -200,6 +200,13 @@ int ptask_get_processor(int i);
 /** Migrate task to processor cpuid*/
 int ptask_migrate_to(int i, int cpuid);
 
+/*----------------------------------------------------------------------------*/
+/*             ptaskTracer tracepoint fonction                                */
+/*----------------------------------------------------------------------------*/
+#ifdef TRACEPOINT_DEFINE
+void tpoint(char* flag, char* state);
+#endif
+
 #endif
 
 /*--------------------------------------------------------------*/

@@ -5,4 +5,8 @@ include_directories(${ALLEGRO_INCLUDE_DIR})
 
 add_executable(activation_example animation.c graphics.c testTaskFun.c)
 
-target_link_libraries(activation_example ptask Threads::Threads ${ALLEGRO_LIBRARY} m rt)
+if(TRACE)
+  target_link_libraries(activation_example ptask Threads::Threads ${ALLEGRO_LIBRARY} m rt dl lttng-ust)
+else()
+  target_link_libraries(activation_example ptask Threads::Threads ${ALLEGRO_LIBRARY} m rt)
+endif()

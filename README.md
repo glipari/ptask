@@ -87,4 +87,6 @@ or, from the `ptask/build/` directory, run
 $ sudo make test
 ```
 
+Note: to use <code>ptaskTracer</code>, <code>cmake</code> with the option <code>-DTRACE=ON</code>.
+
 Happy programming!
