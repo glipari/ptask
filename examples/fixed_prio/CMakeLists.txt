@@ -9,3 +9,6 @@ if(TRACE)
 else()
   target_link_libraries(fixed_prio ptask Threads::Threads m rt)
 endif()
+
+file(COPY data.txt DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
