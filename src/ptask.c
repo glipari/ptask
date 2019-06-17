@@ -206,11 +206,11 @@ void ptask_init(int policy, global_policy global, sem_protocol protocol) {
 
 #ifdef TRACEPOINT_DEFINE
 void tpoint(char* flag, char* state) {
-    pid_t tid = gettid();
+    //pid_t tid = gettid();
     pid_t pid = getpid();
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    tracepoint(ptask_provider, ptask_tracepoint, pid, tid, ptask_idx, flag, state, tspec_to_rel(&now, MILLI), _tp[ptask_idx].priority, tspec_to(&_tp[ptask_idx].period, MICRO), tspec_to(&_tp[ptask_idx].deadline, MICRO));
+    tracepoint(ptask_provider, ptask_tracepoint, pid, _tp[ptask_idx].tid, ptask_idx, flag, state, tspec_to_rel(&now, MILLI), _tp[ptask_idx].priority, tspec_to(&_tp[ptask_idx].period, MICRO), tspec_to(&_tp[ptask_idx].deadline, MICRO), tspec_to(&_tp[ptask_idx].reloffset, MICRO));
 }
 #endif
 
@@ -605,8 +605,17 @@ int ptask_activate(int i) {
     if (_tp[i].state == TASK_ACTIVE || _tp[i].state == TASK_WFP) {
         ret = -1;
     } else {
-        clock_gettime(CLOCK_MONOTONIC, &t);
 
+		#ifdef TRACEPOINT_DEFINE
+		int tmp_ptask_idx=ptask_idx;
+		ptask_idx=i;
+		if(_tp[ptask_idx].act_flag == NOW) tpoint("NOW", "activation");
+		else if(_tp[ptask_idx].act_flag == DEFERRED) tpoint("DEFERRED", "activation");
+		ptask_idx=tmp_ptask_idx;
+		#endif
+
+        clock_gettime(CLOCK_MONOTONIC, &t);
+		
         /* compute the absolute deadline */
         _tp[i].dl = tspec_add(&t, &_tp[i].deadline);
 
@@ -622,6 +631,7 @@ int ptask_activate(int i) {
 
 int ptask_activate_at(int i, ptime offset, int unit) {
     tspec reloff = tspec_from(offset, unit);
+	_tp[i].reloffset = reloff;
     tspec t;
     int ret = 1;
 
