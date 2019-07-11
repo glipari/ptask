@@ -22,7 +22,7 @@ TRACEPOINT_EVENT(
 		int, priority,
 		int, period,
 		int, deadline,
-		int, offset
+		long, actual_at
 	),
 	TP_FIELDS(
 		ctf_integer(int, ptask_pid, pid)
@@ -34,7 +34,7 @@ TRACEPOINT_EVENT(
 		ctf_integer(int, ptask_priority, priority)
 		ctf_integer(int, ptask_period, period)
 		ctf_integer(int, ptask_deadline, deadline)
-		ctf_integer(int, ptask_offset, offset)
+		ctf_integer(long, ptask_actual_at, actual_at)
 	)
 )
 
