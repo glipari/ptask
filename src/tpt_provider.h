@@ -10,30 +10,32 @@
 #include <lttng/tracepoint.h>
 
 TRACEPOINT_EVENT(
-    ptask_provider,
-    ptask_tracepoint,
-    TP_ARGS(
+	ptask_provider,
+	ptask_tracepoint,
+	TP_ARGS(
 		int, pid,
 		int, tid,
-        int, i,
+		int, i,
 		char*, flag,
 		char*, state,
 		long, time,
 		int, priority,
 		int, period,
-		int, deadline
-    ),
-    TP_FIELDS(
+		int, deadline,
+		long, actual_at
+	),
+	TP_FIELDS(
 		ctf_integer(int, ptask_pid, pid)
-        ctf_integer(int, ptask_tid, tid)
-        ctf_integer(int, ptask_index, i)
+		ctf_integer(int, ptask_tid, tid)
+		ctf_integer(int, ptask_index, i)
 		ctf_string(ptask_flag, flag)
 		ctf_string(ptask_state, state)
-        ctf_integer(long, ptask_time, time)
-        ctf_integer(int, ptask_priority, priority)
-        ctf_integer(int, ptask_period, period)
-        ctf_integer(int, ptask_deadline, deadline)
-    )
+		ctf_integer(long, ptask_time, time)
+		ctf_integer(int, ptask_priority, priority)
+		ctf_integer(int, ptask_period, period)
+		ctf_integer(int, ptask_deadline, deadline)
+		ctf_integer(long, ptask_actual_at, actual_at)
+	)
 )
 
 TRACEPOINT_LOGLEVEL(ptask_provider, ptask_tracepoint, TRACE_INFO)

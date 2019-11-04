@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #ifdef TRACEPOINT_DEFINE
 #define TRACEPOINT_CREATE_PROBES
@@ -144,7 +145,9 @@ static void *ptask_std_body(void *arg) {
     else {
         clock_gettime(CLOCK_MONOTONIC, &t);
         _tp[ptask_idx].dl = tspec_add(&t, &_tp[ptask_idx].deadline);
+		_tp[ptask_idx].actual_at = t;
         _tp[ptask_idx].at = tspec_add(&t, &_tp[ptask_idx].period);
+
     }
 
     
@@ -206,11 +209,11 @@ void ptask_init(int policy, global_policy global, sem_protocol protocol) {
 
 #ifdef TRACEPOINT_DEFINE
 void tpoint(char* flag, char* state) {
-    pid_t tid = gettid();
+    //pid_t tid = gettid();
     pid_t pid = getpid();
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    tracepoint(ptask_provider, ptask_tracepoint, pid, tid, ptask_idx, flag, state, tspec_to_rel(&now, MILLI), _tp[ptask_idx].priority, tspec_to(&_tp[ptask_idx].period, MICRO), tspec_to(&_tp[ptask_idx].deadline, MICRO));
+    tracepoint(ptask_provider, ptask_tracepoint, pid, _tp[ptask_idx].tid, ptask_idx, flag, state, tspec_to_rel(&now, MILLI), _tp[ptask_idx].priority, tspec_to(&_tp[ptask_idx].period, MICRO), tspec_to(&_tp[ptask_idx].deadline, MICRO), tspec_to_rel(&_tp[ptask_idx].actual_at,MICRO));
 }
 #endif
 
@@ -326,7 +329,6 @@ int ptask_create_edf(void (*task)(void), int period, int runtime, int dline,
 }
 
 void ptask_wait_for_period() {
-
 #ifdef TRACEPOINT_DEFINE
     if(_tp[ptask_idx].act_flag == NOW) tpoint("NOW", "b_wait_period");
     else if(_tp[ptask_idx].act_flag == DEFERRED) tpoint("DEFERRED", "b_wait_period");
@@ -358,8 +360,9 @@ void ptask_wait_for_period() {
         /* update absolute deadline */
         _tp[ptask_idx].dl =
             tspec_add(&(_tp[ptask_idx].at), &_tp[ptask_idx].deadline);
-
+	
         /* when awaken, update next activation time */
+		_tp[ptask_idx].actual_at = _tp[ptask_idx].at;
         _tp[ptask_idx].at =
             tspec_add(&(_tp[ptask_idx].at), &_tp[ptask_idx].period);
 
@@ -402,7 +405,6 @@ void ptask_wait_for_activation() {
         _tp[ptask_idx].offset = tspec_zero;
     }
     pthread_mutex_unlock(&_tp[ptask_idx].mux);
-
 #ifdef TRACEPOINT_DEFINE
     if(_tp[ptask_idx].act_flag == NOW) tpoint("NOW", "e_wait_activation");
     else if(_tp[ptask_idx].act_flag == DEFERRED) tpoint("DEFERRED", "e_wait_activation");
@@ -605,16 +607,18 @@ int ptask_activate(int i) {
     if (_tp[i].state == TASK_ACTIVE || _tp[i].state == TASK_WFP) {
         ret = -1;
     } else {
-        clock_gettime(CLOCK_MONOTONIC, &t);
 
+        clock_gettime(CLOCK_MONOTONIC, &t);
+		
         /* compute the absolute deadline */
         _tp[i].dl = tspec_add(&t, &_tp[i].deadline);
 
         /* compute the next activation time */
+		_tp[i].actual_at = t;
         _tp[i].at = tspec_add(&t, &_tp[i].period);
-
         /* send the activation signal */
         sem_post(&_tsem[i]);
+
     }
     pthread_mutex_unlock(&_tp[i].mux);
     return ret;
@@ -632,15 +636,18 @@ int ptask_activate_at(int i, ptime offset, int unit) {
         ret = -1;
     } else {
         t = tspec_get_ref();
+		
         /* compute the absolute deadline */
         _tp[i].offset = tspec_add(&t, &reloff);
         _tp[i].dl = tspec_add(&_tp[i].offset, &_tp[i].deadline);
-        /* compute the next activation time */
+        /* compute the next activation time */ 
+		_tp[i].actual_at = _tp[i].offset;
         _tp[i].at = tspec_add(&_tp[i].offset, &_tp[i].period);
         /* send the activation signal */
         sem_post(&_tsem[i]);
         // printf("sem_post done on task %d\n", i);
     }
+
     pthread_mutex_unlock(&_tp[i].mux);
     return ret;
 }

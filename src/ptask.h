@@ -60,6 +60,7 @@ struct task_par {
     int priority;        /* task priority in [0,99]	    */
     int dmiss;           /* number of deadline misses  	*/
     tspec at;            /* next activation time	     	*/
+	tspec actual_at;     /* activation time  */
     tspec dl;            /* current absolute deadline	*/
     tspec offset;        /* offset from activation time  */
     void (*body)(void);  /* the actual body of the task  */
