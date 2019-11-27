@@ -6,6 +6,7 @@ Periodic Real-Time Task interface to pthreads
 * Version 0.2, August 2013
 * Version 0.3, September 2015
 * Version 0.4, July 2017
+* Version 0.5, February 2019
 
 ----
 ## Authors
@@ -16,7 +17,9 @@ Periodic Real-Time Task interface to pthreads
 ## Contributors
 
 * Alessio Balsini (a.balsini@sssup.it)
-* Alexandre Becart and Benoit Delecroix (integration SCHED_DEADLINE)
+* Alexandre Becart and Benoit Delecroix (integrating SCHED_DEADLINE)
+* Pierre Caruyer (dline exception)
+* Amine El Messaoudi (ptaskTracer)
 
 License: GPL 3.0
 
@@ -86,5 +89,17 @@ or, from the `ptask/build/` directory, run
 ```
 $ sudo make test
 ```
+
+### Tracing
+
+You can now visualize the execution trace of the tasks in a PTASK
+application using <a href="https://github.com/ael-mess/ptaskTracer">ptaskTracer</a>, a library
+build on top of ltt-ng. ptaskTracer uses ltt-ng to produce an event file,
+that is then parsed by a Java tool and transformed into a SVG file
+that can be visualized in any browser.
+
+To use <code>ptaskTracer</code>, you must first install the lttng
+development library (in Debian, package liblttng-ust-dev), then invoke
+<code>cmake</code> with option <code>-DTRACE=ON</code>.
 
 Happy programming!

@@ -190,7 +190,7 @@ bool error_edit(char* string, const char* name_value, char* endptr, int val, int
 	errno = 0;    		/* To distinguish success/failure after call */
 
 	/* Checking errors*/
-	bool cond_error1 = ((val == LONG_MAX) || (val == LONG_MIN));
+	bool cond_error1 = ((val == INT_MAX) || (val == INT_MIN));
 	bool cond_error2 = (errno == ERANGE && cond_error1) || (errno != 0 && (val == 0));
 	bool cond_error3 = (endptr == string);
 	bool cond_error4 = (*endptr != '\0');

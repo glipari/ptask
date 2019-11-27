@@ -39,7 +39,7 @@ int	main(void)
     int 	modeACT = MOD_NOW;		/* {MOD_NOW=0, MOD_DEF_OFFSET=1, MOD_DEF_NO_OFFS = 2} */
     int   act_flag = NOW;
 
-    init(TASK_FUN);
+    init();
 
     int 	num_tasks = NUM_T_TEST;
     int 	priority[num_tasks];
@@ -89,7 +89,7 @@ int	main(void)
                 textprintf_ex(screen, font, X_LINE_VERT0 + 5, Y_TIMES + i * ALT_RIGA, FGC, BGC, "%ld            ", time_tmp);
                 pthread_mutex_unlock(&mxa);
             }
-            id = ptask_create(periodicLine_testSystemTask, PER, priority[i], act_flag);
+            id = ptask_create_prio(periodicLine_testSystemTask, PER, priority[i], act_flag);
         }
         else {
             /* MODE WITH OFFSET */
@@ -97,7 +97,7 @@ int	main(void)
             pthread_mutex_lock(&mxa);
             textprintf_ex(screen, font, (X_LINE_VERT0 + X_LINE_VERT1)/2, Y_TIMES + i * ALT_RIGA, FGC, BGC, "-");
             pthread_mutex_unlock(&mxa);
-            id = ptask_create(periodicLine_testSystemTaskOFFSET, PER, priority[i], act_flag);
+            id = ptask_create_prio(periodicLine_testSystemTaskOFFSET, PER, priority[i], act_flag);
             printf("act_flag = %d, id = %d, v_offset[%d] = %ld\n", act_flag, id+1, id, v_offset[id]);
             ret = ptask_activate_at(id, v_offset[i], MILLI);
 
