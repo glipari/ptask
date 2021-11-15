@@ -37,6 +37,8 @@ int main() {
     ptask_param_runtime(p, 30, MILLI);
     ptask_param_activation(p, NOW);
 
+    fprintf(stdout, "Calibrating, wait ...\n");
+    
     // calibration
     int cal_index = ptask_create_param(calibrate_task, &p);
 
@@ -45,13 +47,20 @@ int main() {
     ptime x_micro = tspec_to(&x, MICRO);
     long n_iter = (WORK_NITER * 1000) / x_micro;
 
-    printf("Average exec time for %ld iterations = %ld microseconds\n",
+    fprintf(stdout, "Average exec time for %ld iterations = %ld microseconds\n",
            WORK_NITER, x_micro);
-    printf("So, #iterations for 1 millisecond = %ld\n", n_iter);
+    fprintf(stdout, "#iterations for 1 millisecond = %ld\n", n_iter);
 
     FILE *f = fopen(CALIBRATE_FILE, "w");
     fprintf(f, "%ld", n_iter);
     fclose(f);
+
+    f = fopen(CALIBRATE_SHELL, "w");
+    fprintf(f, "export %s=%ld\n", PTASK_CALIBRATE_ITER, n_iter);
+    fclose(f);
+
+    fprintf(stdout, "Copy the content of %s into your .bashrc file\n"
+            "or type source %s in your shell\n", PTASK_CALIBRATE_ITER, PTASK_CALIBRATE_ITER);
 
     assert(1);
 

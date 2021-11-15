@@ -19,7 +19,7 @@ Periodic Real-Time Task interface to pthreads
 * Alessio Balsini (a.balsini@sssup.it)
 * Alexandre Becart and Benoit Delecroix (integrating SCHED_DEADLINE)
 * Pierre Caruyer (dline exception)
-* Amine El Messaoudi (ptaskTracer)
+* Amine El Messaoudi and Flora Dziedzic (ptaskTracer)
 
 License: GPL 3.0
 

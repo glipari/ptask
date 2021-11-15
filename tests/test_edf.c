@@ -22,8 +22,6 @@ int njobs[3] = {5, 3, 3};
 pbarrier_t barrier;
 gsem_t sem;
 
-long iter_milli = 0;
-
 int cnts[3] = {0, 0, 0};
 
 // the scheduling sequence
@@ -77,7 +75,7 @@ int main() {
     ptask_init(SCHED_DEADLINE, PARTITIONED, PRIO_INHERITANCE);
 
     gsem_init(&sem);
-    iter_milli = calibrate();
+    read_calibrate_env();
 
     for (int i = 0; i < 3; i++) {
         ptask_param_init(p);
@@ -106,6 +104,7 @@ int main() {
     printf("All task activated, waiting for termination\n");
 
     gsem_wait(&sem, 3);
+
     // the task have completed, success!
 
     return 0;

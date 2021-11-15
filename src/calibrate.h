@@ -13,7 +13,10 @@
 
 #define CALIBRATE_FILE "iterations.txt"
 
+/* opens file iterations.txt */
 long calibrate();
+/* reads from the environment variable PTASK_CALIBRATE_ITER */
+long calibrate_env();
 
 /* work for a certain amount of time (step of ~ 1 milliseconds) */
 void work_for(ptime delay, int unit);

@@ -73,7 +73,7 @@ int main(void) {
     dle_manager_init();
 
     /* Calibrate the work_for() function */
-    calibrate();
+    read_calibrate_env();
     
     /* Creating three tasks with different priorities */
     printf("Creation of task: %d\n", start_task(MILLI, 2000, 2000, 10, task1));

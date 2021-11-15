@@ -5,12 +5,14 @@
 void task()
 {
     int dur = *((int*) ptask_get_argument());
+
     while (1) {
-        //printf("Task with dur %d\n", dur);
+        printf("Task with dur %d\n", dur);
         work_for(dur, MILLI);
         ptask_wait_for_period();
     }
 }
+
 
 struct task_pars {
     int wcet;
@@ -79,13 +81,13 @@ int main(int argc, char *argv[])
     struct task_pars *pars = load_tasks(argv[1]);
 
     ptask_init(SCHED_FIFO, PARTITIONED, PRIO_INHERITANCE);
-    calibrate();
+    calibrate_env();
 
     int i = 0;
     while (pars[i].wcet != -1) {
         tpars param = TASK_SPEC_DFL;
-        param.period = tspec_from(pars[i].period, MILLI);
-        param.rdline = tspec_from(pars[i].deadline, MILLI);
+        param.period = tspec_from(pars[i].period, MILLI);    // a_i = 0, P, 2*P, ... 
+        param.rdline = tspec_from(pars[i].deadline, MILLI);  // d_i = a_i + D 
         param.priority = pars[i].priority;
         param.processor = 1;
         param.act_flag = DEFERRED;
