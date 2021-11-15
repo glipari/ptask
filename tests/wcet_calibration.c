@@ -8,7 +8,7 @@
 
 gsem_t sem;
 
-#define WORK_NITER 10000000l
+#define WORK_NITER 100000l
 
 void calibrate_task() {
     int i = 0;
@@ -45,18 +45,18 @@ int main() {
     gsem_wait(&sem, 1);
     tspec x = ptask_get_avg(cal_index);
     ptime x_micro = tspec_to(&x, MICRO);
-    long n_iter = (WORK_NITER * 1000) / x_micro;
+    int32_t n_iter = (((int32_t)WORK_NITER) * 1000) / x_micro;
 
     fprintf(stdout, "Average exec time for %ld iterations = %ld microseconds\n",
            WORK_NITER, x_micro);
-    fprintf(stdout, "#iterations for 1 millisecond = %ld\n", n_iter);
+    fprintf(stdout, "#iterations for 1 millisecond = %d\n", n_iter);
 
     FILE *f = fopen(CALIBRATE_FILE, "w");
-    fprintf(f, "%ld", n_iter);
+    fprintf(f, "%d", n_iter);
     fclose(f);
 
     f = fopen(CALIBRATE_SHELL, "w");
-    fprintf(f, "export %s=%ld\n", PTASK_CALIBRATE_ITER, n_iter);
+    fprintf(f, "export %s=%d\n", PTASK_CALIBRATE_ITER, n_iter);
     fclose(f);
 
     fprintf(stdout, "Copy the content of %s into your .bashrc file\n"
