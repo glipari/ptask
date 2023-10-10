@@ -1,7 +1,6 @@
 #ifndef __DLE_TIMER_H__
 #define __DLE_TIMER_H__
 
-#include "ptask.h"
 #include <assert.h>
 #include <errno.h>
 #include <setjmp.h>
@@ -10,28 +9,29 @@
 #include <string.h>
 #include <time.h>
 
+#include <ptask.h>
+
 #ifndef MAX_TASKS
 #define MAX_TASKS 50
 #endif
 
-struct dle_timer_s {
-    int dle_timer_signo;             /*< defines the sigmask that the timer will
-                                       have to correspond to, in order to
-                                       throw an exception */
-    pthread_t dle_timer_threadid;    /*< The timer is aimed at one specific task
-                                       (thread) */
-    timer_t dle_timer_timerid;       /*< This will be useful to arm / disarm
-                                       the task’s timer */
-    void (*dle_timer_handler)(int, siginfo_t *, void *); /*< handler executed upon timer expiration */
-};
+/** Must be called in the main after ptask_init() */
+int dle_manager_init();
 
-int dle_manager_init(); /*< Must be called in the main after ptask_init */
+/** Must be called at the start of each task that wants to check the
+    deadlines */
+int dle_init();
 
-int dle_chkpoint();     /*< Sets a check point */
+/** Must be called at the end of the task */
+int dle_exit();
 
-int dle_timer_start(); /*< Starts exception timer : it will expire at
-                         task deadline */
+/** Macro for the chkpoint */
+#define DLE_CHKPOINT sigsetjmp(ptask_get_current()->jmp_env, 1)
 
-int dle_timer_stop(); /*< Stops exception timer */
+/** Starts exception timer : it will expire at task deadline */
+int dle_timer_start();
+
+/** Stops exception timer */
+int dle_timer_stop(); 
 
 #endif

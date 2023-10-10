@@ -1,6 +1,7 @@
 #include <ptask.h>
 #include <calibrate.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 void task()
 {

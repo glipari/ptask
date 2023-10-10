@@ -9,15 +9,26 @@ struct dle_manager_s {
     pthread_t dle_manager_threadid;
 };
 
+struct dle_timer_s {
+    int dle_timer_signo;             /*< defines the sigmask that the timer will
+                                       have to correspond to, in order to
+                                       throw an exception */
+    pthread_t dle_timer_threadid;    /*< The timer is aimed at one specific task
+                                       (thread) */
+    timer_t dle_timer_timerid;       /*< This will be useful to arm / disarm
+                                       the task’s timer */
+    void (*dle_timer_handler)(int, siginfo_t *, void *); /*< handler executed upon timer expiration */
+};
+
 static struct dle_manager_s dle_manager;
 static struct dle_timer_s dle_timers[MAX_TASKS];
 
 static void dle_manager_handler(int signo, siginfo_t *info, void *context)
 {
     struct task_par *task = ptask_get_task(info->si_value.sival_int);
-
-    printf("    [DLE DEBUG] **** WARNING **** Handler task manager: task %d received signal %d\n",
-           info->si_value.sival_int, signo);
+    
+    printf("    [DLE DEBUG] **** WARNING **** Handler task manager: received signal %d for task %d with index %d, tid : %d\n",
+           signo, info->si_value.sival_int, task->index, task->tid);
     printf("    [DLE DEBUG] Now %ld, Deadline %ld\n", ptask_gettime(MILLI),
            tspec_to_rel(&task->dl, MILLI));
     
@@ -25,18 +36,26 @@ static void dle_manager_handler(int signo, siginfo_t *info, void *context)
         perror("Could not send signal");
         exit(EXIT_FAILURE);
     }
+    /*if (pthread_kill(task->tid, SIGUSR1) != 0) {
+        perror("Could not send signal");
+        exit(EXIT_FAILURE);
+        }*/
 }
 
-static int dle_timer_initialized() {
+static int dle_timer_initialized()
+{
     int task_index = ptask_get_index();
     return (dle_timers[task_index].dle_timer_timerid != 0);
 }
 
-static void task_handler(int sig, siginfo_t *info, void *context) {
+static void task_handler(int sig, siginfo_t *info, void *context)
+{
+    printf("    [DLE DEBUG] Deadline miss task %d, sig = %d\n", ptask_get_index(), sig);
     siglongjmp(ptask_get_current()->jmp_env, 1);
 }
 
-int dle_init() {
+int dle_init()
+{
     struct sigaction manager_sigaction, task_sigaction;
     int task_index = ptask_get_index();
     struct sigevent sev;
@@ -70,19 +89,26 @@ int dle_init() {
 }
 
 // Not meant to be called by the user
-int dle_exit() {
+int dle_exit()
+{
     int task_index = ptask_get_index();
     if (!dle_timer_initialized())
         return -1;
     return timer_delete(dle_timers[task_index].dle_timer_timerid);
 }
 
-int dle_chkpoint()
-{
-    return sigsetjmp(ptask_get_current()->jmp_env, 1);
-}
+/* int dle_chkpoint() */
+/* { */
+/*     int r = -1; */
+/*     if (sigsetjmp(ptask_get_current()->jmp_env, 1)) r = 1; */
+/*     else r = 0; */
 
-int dle_timer_start() {
+/*     printf("Task %d, returning from sigsetjmp with r = %d\n", ptask_get_index(), r); */
+/*     return r; */
+/* } */
+
+int dle_timer_start()
+{
     struct task_par *task = ptask_get_current();
     int task_index = task->index;
     struct itimerspec its;
@@ -93,15 +119,16 @@ int dle_timer_start() {
     its.it_value.tv_sec = task->dl.tv_sec;
     its.it_interval.tv_nsec = its.it_interval.tv_sec = 0;
 
-    printf("    [DLE DEBUG] Arm at time %ld, task %d with deadline %ld\n",
+    /*printf("    [DLE DEBUG] Arm at time %ld, task %d with deadline %ld\n",
            ptask_gettime(MILLI),
-           task_index, tspec_to_rel(&task->dl, MILLI));
+           task_index, tspec_to_rel(&task->dl, MILLI));*/
     
     return timer_settime(dle_timers[task_index].dle_timer_timerid,
                          TIMER_ABSTIME, &its, NULL);
 }
 
-int dle_timer_stop() {
+int dle_timer_stop()
+{
     struct itimerspec its;
     int task_index = ptask_get_index();
     if (!dle_timer_initialized())
@@ -110,25 +137,27 @@ int dle_timer_stop() {
     its.it_interval.tv_nsec = its.it_value.tv_nsec = 0;
     its.it_interval.tv_sec = its.it_value.tv_sec = 0;
 
-    printf("    [DLE DEBUG] Disarm at time %ld, task %d with deadline %ld\n",
+    /*printf("    [DLE DEBUG] Disarm at time %ld, task %d with deadline %ld\n",
            ptask_gettime(MILLI),
-           task_index, tspec_to_rel(&ptask_get_task(task_index)->dl, MILLI));
+           task_index, tspec_to_rel(&ptask_get_task(task_index)->dl, MILLI));*/
     
     return timer_settime(dle_timers[task_index].dle_timer_timerid,
                          TIMER_ABSTIME, &its, NULL);
 }
 
-static ptask dle_manager_task(void) {
+static ptask dle_manager_task(void)
+{
     sigset_t set;
     sigfillset(&set);
     sigdelset(&set, SIGUSR2);
     pthread_sigmask(SIG_BLOCK, &set, NULL);
-    dle_manager.dle_manager_tid = syscall(SYS_gettid);
+    dle_manager.dle_manager_tid = gettid();//syscall(SYS_gettid);
     for (;;)
         pause();
 }
 
-int dle_manager_init() {
+int dle_manager_init()
+{
     tpars param;
     int res;
     ptask_param_init(param);

@@ -11,12 +11,14 @@
 
 #include "calibrate.h"
 #include "ptask.h"
+#include "dle_timer.h"
 
 ptask taskbody(ptime work_time, int unit) {
     int idx = ptask_get_index(), job = 0;
     ptask_wait_for_activation();
+    dle_init();
     for (;; job++) {
-        if (dle_chkpoint() != 0) {
+        if (DLE_CHKPOINT != 0) {
             ptask_wait_for_period();
             printf("Task %d returned from a longjmp :\n\tCurrent time %ld | "
                    "Deadline %ld\n",
@@ -34,6 +36,7 @@ ptask taskbody(ptime work_time, int unit) {
         printf("Task %d completed for the %i time\n", idx, job);
         ptask_wait_for_period();
     }
+    dle_exit();
 }
 
 ptask task1(void) { taskbody(500, MILLI); }

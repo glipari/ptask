@@ -46,8 +46,8 @@ static int ptask_num_cores;       /*< number of cores in the system */
     
     @todo: move them into the user code (not automatic!)
  */
-extern int dle_init(); // TODO : modify comment (before task initialization)
-extern int dle_exit(); // TODO : modify comment (after task ends)
+//extern int dle_init(); // TODO : modify comment (before task initialization)
+//extern int dle_exit(); // TODO : modify comment (after task ends)
 
 /**
    This function returns a free descriptor, or -1 if there are no more

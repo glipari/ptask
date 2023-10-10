@@ -5,7 +5,7 @@
 #ifndef __PTASK_H__
 #define __PTASK_H__
 
-#include "dle_timer.h"
+//#include "dle_timer.h"
 #include <libdl.h>
 #include <linux/sched.h>
 #include <pthread.h>
