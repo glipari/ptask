@@ -13,6 +13,12 @@
 #define SEZ_A 0
 #define SEZ_B 1
 
+pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_mutex_t mx_sezNorm; // no protocol
+pthread_mutex_t mx_sezA;
+pthread_mutex_t mx_sezB;
+
 int prtime[MAX_TASKS];   /* number of cycles	*/
 int period[MAX_TASKS];   /* task periods		*/
 int dline[MAX_TASKS];    /* task deadline	*/

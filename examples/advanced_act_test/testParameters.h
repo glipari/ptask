@@ -52,8 +52,8 @@
 #define VELX 15. /* horizontal ball velocity		*/
 
 /* mutual exclusion semaphores  */
-pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
+extern pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
 
-char index_modification[3];  /* contains index of task from which change
+extern char index_modification[3];  /* contains index of task from which change
                                 parameters */
-char value_modification[10]; /* contains value of parameter to modify */
+extern char value_modification[10]; /* contains value of parameter to modify */

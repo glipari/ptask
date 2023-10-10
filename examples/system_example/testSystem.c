@@ -19,7 +19,11 @@ int num_tasks;     /* number of tasks	*/
 float scale = 1.0; /* time scale		*/
 
 /* mutual exclusion semaphores  */
-pthread_mutex_t mxa;
+pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_mutex_t mx_sezNorm; // no protocol
+pthread_mutex_t mx_sezA;
+pthread_mutex_t mx_sezB;
 
 /*--------------------------------------------------------------*/
 /*  Reads task parameters from a configuration file     	*/

@@ -76,10 +76,10 @@
 #define DREL 100 /* realtive deadline in ms		*/
 #define PRIO 80  /* task priority				*/
 
-ptime time_t0; /* Time reference for timeoffset (from ptask_init(...))*/
+extern ptime time_t0; /* Time reference for timeoffset (from ptask_init(...))*/
 
 /* *************************************************************************************************
  */
 
 /* mutual exclusion semaphores  */
-pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
+extern pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;

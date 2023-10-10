@@ -80,8 +80,8 @@
 #define PCP 2 /* Priority Ceiling Protocol		*/
 /* ************************************************************* */
 /* mutual exclusion semaphores  */
-pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
+extern pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
 
-pthread_mutex_t mx_sezNorm; // no protocol
-pthread_mutex_t mx_sezA;
-pthread_mutex_t mx_sezB;
+extern pthread_mutex_t mx_sezNorm; // no protocol
+extern pthread_mutex_t mx_sezA;
+extern pthread_mutex_t mx_sezB;

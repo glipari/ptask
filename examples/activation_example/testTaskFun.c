@@ -4,6 +4,9 @@
 #include "graphics.h"
 #include "testParameters.h"
 
+
+
+
 void init() {
 	allegro_init();
 

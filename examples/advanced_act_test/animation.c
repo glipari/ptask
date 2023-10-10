@@ -7,6 +7,11 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
+ptime start_time[NUM_T_TEST][MAX_SAMPLE];
+ptime v_next_at[NUM_T_TEST][MAX_SAMPLE];
+int sample[NUM_T_TEST]; // sample[i]: number of sample processed of the taski
+
+
 void draw_ball(int x, int y, int c) { circlefill(screen, x, y, L, c); }
 
 void print_id_task(int id, int x, int y, int color) {

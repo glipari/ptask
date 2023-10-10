@@ -8,6 +8,11 @@
 #define ATTIVO true
 #define NON_ATTIVO false
 
+pthread_mutex_t mxa;
+
+char index_modification[3];  /* contains index of task from which change
+                                parameters */
+char value_modification[10]; /* contains value of parameter to modify */
 long period[NUM_T_TEST];      /* task periods		*/
 int rel_dl[NUM_T_TEST];       /* task deadline	*/
 int prio[NUM_T_TEST];         /* task priority	*/

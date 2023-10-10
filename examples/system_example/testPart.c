@@ -5,6 +5,13 @@
 #include <stdbool.h>
 #include <string.h>
 
+pthread_mutex_t mxa; // = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_mutex_t mx_sezNorm; // no protocol
+pthread_mutex_t mx_sezA;
+pthread_mutex_t mx_sezB;
+
+
 void init() {
     allegro_init();
     set_gfx_mode(GFX_AUTODETECT_WINDOWED, XWIN, YWIN, 0, 0);
