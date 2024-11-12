@@ -13,7 +13,8 @@
 #include "ptask.h"
 #include "dle_timer.h"
 
-ptask taskbody(ptime work_time, int unit) {
+ptask taskbody(ptime work_time, int unit)
+{
     int idx = ptask_get_index(), job = 0;
     ptask_wait_for_activation();
     dle_init();
@@ -44,7 +45,8 @@ ptask task1(void) { taskbody(500, MILLI); }
 ptask task2(void) { taskbody(800, MILLI); }
 
 static int start_task(int unit, int period, int deadline, int priority,
-                      void (*task_body)(void)) {
+                      void (*task_body)(void))
+{
     tpars param;
 
     ptask_param_init(param);
@@ -55,7 +57,8 @@ static int start_task(int unit, int period, int deadline, int priority,
     return ptask_create_param(task_body, &param);
 }
 
-int main(void) {
+int main(void)
+{
     ptask_init(SCHED_FIFO, PARTITIONED, PRIO_INHERITANCE);
     dle_manager_init();
 

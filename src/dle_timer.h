@@ -28,7 +28,7 @@ int dle_exit();
 /** Macro for the chkpoint */
 #define DLE_CHKPOINT sigsetjmp(ptask_get_current()->jmp_env, 1)
 
-/** Starts exception timer : it will expire at task deadline */
+/** Starts exception timer: it will expire at task deadline */
 int dle_timer_start();
 
 /** Stops exception timer */
