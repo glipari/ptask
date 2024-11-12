@@ -12,6 +12,8 @@
     } while (0)
 
 #define CALIBRATE_FILE "iterations.txt"
+#define CALIBRATE_SHELL "iterations.sh"
+#define PTASK_CALIBRATE_ITER "PTASK_CALIBRATE_ITER"
 
 /* opens file iterations.txt */
 long calibrate();

@@ -75,7 +75,7 @@ int main() {
     ptask_init(SCHED_DEADLINE, PARTITIONED, PRIO_INHERITANCE);
 
     gsem_init(&sem);
-    read_calibrate_env();
+    calibrate_env();
 
     for (int i = 0; i < 3; i++) {
         ptask_param_init(p);

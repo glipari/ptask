@@ -78,7 +78,7 @@ int main(void) {
     dle_manager_init();
 
     /* Calibrate the work_for() function */
-    read_calibrate_env();
+    calibrate_env();
 
     int t1 = start_task(MILLI, 2000, 2000, 10, task1);
     int t2 = start_task(MILLI, 3000, 3000, 7, task2);

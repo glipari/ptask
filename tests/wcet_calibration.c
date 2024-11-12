@@ -1,4 +1,4 @@
-#include "calibrate.h"
+#include <calibrate.h>
 #include <assert.h>
 #include <pbarrier.h>
 #include <ptask.h>
@@ -60,7 +60,7 @@ int main() {
     fclose(f);
 
     fprintf(stdout, "Copy the content of %s into your .bashrc file\n"
-            "or type source %s in your shell\n", PTASK_CALIBRATE_ITER, PTASK_CALIBRATE_ITER);
+            "or type source iterate.sh in your shell\n", CALIBRATE_FILE);
 
     assert(1);
 
