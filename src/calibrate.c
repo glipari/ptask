@@ -1,6 +1,7 @@
 #include "calibrate.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <ptask.h>
 #include <tstat.h>
 
 static long iter_milli = 0;
@@ -21,10 +22,10 @@ long calibrate_env()
 {
     char *var = getenv("PTASK_CALIBRATE_ITER");
     if (!var)
-        ptask_syserror("Cannot find PTASK_CALIBRATE_ITER");
+        ptask_syserror("calibrate_env", "Cannot find PTASK_CALIBRATE_ITER");
     long val = strtol(var, NULL, 10);
     if (val < 0)
-        ptask_syserror("Cannot calibrate, negative value!");
+        ptask_syserror("calibrate_env", "Cannot calibrate, negative value!");
     return val;
 }
 
