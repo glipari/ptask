@@ -8,9 +8,9 @@
 #include <stdlib.h>
 #include <sys/syscall.h>
 #include <time.h>
-#include "calibrate.h"
-#include "ptask.h"
-#include "dle_timer.h"
+#include <calibrate.h>
+#include <ptask.h>
+#include <dle_timer.h>
 
 ptask taskbody(ptime work_time, int unit)
 {
@@ -27,7 +27,7 @@ ptask taskbody(ptime work_time, int unit)
                    idx, ptask_get_task(idx)->tid,
                    tspec_to_rel(&ptask_get_task(idx)->dl, MILLI),
                    ptask_gettime(MILLI));
-
+            
             ptask_wait_for_period();
             continue;
         }
@@ -78,7 +78,7 @@ int main(void) {
     dle_manager_init();
 
     /* Calibrate the work_for() function */
-    read_calibrate_env();
+    calibrate_env();
 
     int t1 = start_task(MILLI, 2000, 2000, 10, task1);
     int t2 = start_task(MILLI, 3000, 3000, 7, task2);

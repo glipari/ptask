@@ -1,6 +1,7 @@
 #include "calibrate.h"
 #include <assert.h>
 #include <pbarrier.h>
+#include <calibrate.h>
 #include <ptask.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,10 +73,15 @@ void body() {
 int main() {
     tpars p;
 
+    if (geteuid() != 0) {
+        printf("You should run this test as root\n");
+        exit(-1);
+    }
+
     ptask_init(SCHED_DEADLINE, PARTITIONED, PRIO_INHERITANCE);
 
     gsem_init(&sem);
-    read_calibrate_env();
+    calibrate_env();
 
     for (int i = 0; i < 3; i++) {
         ptask_param_init(p);
@@ -105,7 +111,7 @@ int main() {
 
     gsem_wait(&sem, 3);
 
-    // the task have completed, success!
+    // the tasks have completed, success!
 
     return 0;
 }

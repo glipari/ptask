@@ -35,6 +35,8 @@ void *body(void *arg) {
     ptr->y = ptr->x + 100;
     printf("TASK[%d]: Completing (%d, %d)\n", ptr->x, ptr->x, ptr->y);
 
+    free(ptr);
+    
     return 0;
 }
 

@@ -12,6 +12,8 @@
     } while (0)
 
 #define CALIBRATE_FILE "iterations.txt"
+#define CALIBRATE_SHELL "iterations.sh"
+#define PTASK_CALIBRATE_ITER "PTASK_CALIBRATE_ITER"
 
 /* returns the number of iterations (to be called after calibrate) */
 long calibrate_get_iterations();

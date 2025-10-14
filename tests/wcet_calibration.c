@@ -1,10 +1,10 @@
-#include "calibrate.h"
 #include <assert.h>
 #include <pbarrier.h>
 #include <ptask.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <tstat.h>
+#include <calibrate.h>
 
 gsem_t sem;
 
@@ -25,6 +25,12 @@ void calibrate_task() {
 }
 
 int main() {
+
+    if (geteuid() != 0) {
+        printf("Run this program as root\n");
+        exit(-1);
+    }
+
     ptask_init(SCHED_DEADLINE, GLOBAL, PRIO_INHERITANCE);
     gsem_init(&sem);
 
@@ -60,7 +66,7 @@ int main() {
     fclose(f);
 
     fprintf(stdout, "Copy the content of %s into your .bashrc file\n"
-            "or type source %s in your shell\n", PTASK_CALIBRATE_ITER, PTASK_CALIBRATE_ITER);
+            "or type source %s in your shell\n", CALIBRATE_SHELL, CALIBRATE_SHELL);
 
     assert(1);
 
