@@ -1,10 +1,14 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
 project(ptask)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 SET(CMAKE_C_FLAGS "-Wall")
 #SET (CMAKE_C_FLAGS "-Wall -fsanitize=address")
 #SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 

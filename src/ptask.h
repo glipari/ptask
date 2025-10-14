@@ -17,7 +17,7 @@
 
 /*--------------------------------------------------------------*/
 
-#define MAX_TASKS 50
+#define MAX_TASKS 100
 #define MAX_GROUPS 10
 
 /* activation flag for task_create */
@@ -171,8 +171,8 @@ void *ptask_get_argument();       /*< returns the task argument            */
 ptime ptask_get_nextactivation(int unit); /*< next act. time of thread   */
 
 /* Global functions on tasks */
-int ptask_activate(int i); /*< activates the task of idx i            p */
-int ptask_activate_at(int i, ptime off, int unit); /*< act. at offset  */
+int ptask_activate(int i); /*< activates the task of idx i                */
+int ptask_activate_at(int i, ptime off, int unit); /*< act. at offset     */
 pthread_t ptask_get_threadid(int i); /*< returns the thread id of task i  */
 pthread_attr_t *ptask_get_threadattr(int i);
 struct task_par *ptask_get_task(int i);

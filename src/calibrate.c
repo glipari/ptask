@@ -17,6 +17,11 @@ long calibrate() {
     return iter_milli;
 }
 
+long calibrate_get_iterations()
+{
+    return iter_milli;
+}
+
 long calibrate_env()
 {
     char *var = getenv("PTASK_CALIBRATE_ITER");
@@ -25,6 +30,7 @@ long calibrate_env()
     long val = strtol(var, NULL, 10);
     if (val < 0)
         ptask_syserror("Cannot calibrate, negative value!");
+    iter_milli = val;
     return val;
 }
 

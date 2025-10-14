@@ -30,12 +30,15 @@ void tstat_record(int i) {
 tspec ptask_get_wcet(int i) { return measures[i].wcet; }
 
 tspec ptask_get_avg(int i) {
-    tspec res;
-    tspec diff = ptask_get_total(i);
-    res.tv_sec = diff.tv_sec / measures[i].num_instances;
-    diff.tv_nsec += (diff.tv_sec % measures[i].num_instances) * 1000000000L;
-    res.tv_nsec = diff.tv_nsec / measures[i].num_instances;
+  tspec res = {0, 0};
+  tspec diff = ptask_get_total(i);
+  if (measures[i].num_instances == 0)
     return res;
+
+  res.tv_sec = diff.tv_sec / measures[i].num_instances;
+  diff.tv_nsec += (diff.tv_sec % measures[i].num_instances) * 1000000000L;
+  res.tv_nsec = diff.tv_nsec / measures[i].num_instances;
+  return res;
 }
 
 int ptask_get_numinstances(int i) { return measures[i].num_instances; }

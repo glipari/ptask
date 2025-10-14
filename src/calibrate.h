@@ -13,6 +13,9 @@
 
 #define CALIBRATE_FILE "iterations.txt"
 
+/* returns the number of iterations (to be called after calibrate) */
+long calibrate_get_iterations();
+
 /* opens file iterations.txt */
 long calibrate();
 /* reads from the environment variable PTASK_CALIBRATE_ITER */
