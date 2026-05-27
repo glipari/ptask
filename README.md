@@ -24,6 +24,12 @@ Periodic Real-Time Task interface to pthreads
 License: GPL 3.0
 
 ----
+
+## Announcement 
+
+From 26/05/2026 this repository has been moved to Codeberg. No further updates will be made to this repo. 
+
+----
 ## Introduction
 
 PTASK is a simple wrapper to the pthread library. It is intended for
