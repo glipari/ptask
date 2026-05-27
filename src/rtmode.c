@@ -71,7 +71,9 @@ static void mode_manager() {
 int rtmode_init(rtmode_t *g, int nmodes) {
     int i;
 
-    g->modes = (tasklist_t *)malloc(sizeof(tasklist_t) * nmodes);
+    if (nmodes <= 0 || nmodes > RTMODE_MAX_MODES)
+        return -1;
+    g->modes = (tasklist_t *)calloc(nmodes, sizeof(tasklist_t));
     g->nmodes = nmodes;
 
     for (i = 0; i < nmodes; ++i)
